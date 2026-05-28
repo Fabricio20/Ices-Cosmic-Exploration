@@ -217,7 +217,16 @@ namespace ICE.Scheduler.Tasks
 
                     if (currentCharge != 0 && currentCharge >= Mission_Settings.Collectable_BuffCount)
                     {
-                        ActionManager.Instance()->UseAction(ActionType.GeneralAction, 27);
+                        var csStatus = ActionManager.Instance()->GetActionStatus(ActionType.GeneralAction, 27);
+                        if (csStatus != 0)
+                        {
+                            IceLogging.Verbose($"[Collectable] Collector's Standard not ready, status={csStatus}");
+                        }
+                        else if (EzThrottler.Throttle("Using Collector Standard", 100))
+                        {
+                            IceLogging.Debug("[Collectable] Using Collector's Standard");
+                            ActionManager.Instance()->UseAction(ActionType.GeneralAction, 27);
+                        }
                     }
                     else if (CanUseCollectableAction("Scrutiny"))
                     {
@@ -439,7 +448,11 @@ namespace ICE.Scheduler.Tasks
                     {
                         if (node.IsTargetable)
                         {
-                            if (EzThrottler.Throttle("Target + Interacting w/ node"))
+                            if (PlayerHelper.CustomIsBusy)
+                            {
+                                IceLogging.Verbose("Waiting for animation lock before interacting with node", "[Gathering: OpenGatheringMenu]");
+                            }
+                            else if (EzThrottler.Throttle("Target + Interacting w/ node"))
                             {
                                 Utils.TargetgameObject(node);
                                 Utils.InteractWithObject(node);
@@ -715,8 +728,15 @@ namespace ICE.Scheduler.Tasks
             var jobId = (uint)Player.Job;
 
             var actionId = collectorBuffs[action].ClassAction[jobId];
+            var status = ActionManager.Instance()->GetActionStatus(ActionType.Action, actionId);
+            if (status != 0)
+            {
+                IceLogging.Verbose($"[Collectable] Buff '{action}' (id={actionId}) not ready, status={status}");
+                return;
+            }
             if (EzThrottler.Throttle("Using Action Buff", 100))
             {
+                IceLogging.Debug($"[Collectable] Using buff: {action} (id={actionId})");
                 ActionManager.Instance()->UseAction(ActionType.Action, actionId);
             }
         }
@@ -726,7 +746,17 @@ namespace ICE.Scheduler.Tasks
             var jobId = (uint)Player.Job;
 
             var actionId = collectorAction[action].ClassAction[jobId];
-            ActionManager.Instance()->UseAction(ActionType.Action, actionId);
+            var status = ActionManager.Instance()->GetActionStatus(ActionType.Action, actionId);
+            if (status != 0)
+            {
+                IceLogging.Verbose($"[Collectable] Action '{action}' (id={actionId}) not ready, status={status}");
+                return;
+            }
+            if (EzThrottler.Throttle("Using Collectable Action", 100))
+            {
+                IceLogging.Debug($"[Collectable] Using action: {action} (id={actionId})");
+                ActionManager.Instance()->UseAction(ActionType.Action, actionId);
+            }
         }
         public static bool? CheckReduceMission()
         {
