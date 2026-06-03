@@ -299,6 +299,12 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         Window_ExternalDetails.SelectedMission = mission.Id;
                         Utils.SetGatheringRing(mission.SheetInfo.TerritoryId, (int)mission.SheetInfo.MapPosition.X, (int)mission.SheetInfo.MapPosition.Y, mission.SheetInfo.Radius, mission.SheetInfo.Name);
                     }
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.Text($"X: {mission.SheetInfo.MapPosition.X:N0}, Z: {mission.SheetInfo.MapPosition.Y:N0}");
+                        ImGui.EndTooltip();
+                    }
                 }
                 if (CosmicHelper.CriticalLocations.TryGetValue(mission.Id, out var criticalLoc))
                 {
@@ -699,6 +705,13 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                     {
                         var icon = item.SheetInfo.IsTimed ? FontAwesomeIcon.Clock : FontAwesomeIcon.ListOl;
                         ImGuiEx.Icon(icon);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Time Slot");
+                            ImGui.Text($"{item.SheetInfo.StartTime:D2}:00 - {item.SheetInfo.EndTime:D2}:00");
+                            ImGui.EndTooltip();
+                        }
                     }
                     else
                     {
@@ -892,7 +905,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         var silverEnabled = !timeExpired && highestTurnin >= TurninState.Silver;
                         var bronzeEnabled = !timeExpired && highestTurnin >= TurninState.Bronze;
 
-                        if (item.SheetInfo.Rank == 6)
+                        if (item.SheetInfo.Rank == 6 && !item.SheetInfo.IsProvisional)
                         {
                             using (ImRaii.PushColor(ImGuiCol.Text, timeExpired ? GoldColor : DisabledColor))
                             {

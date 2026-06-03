@@ -72,13 +72,10 @@
 
 	<ItemGroup>
 	  <Folder Include="Resources\GatheringRoutes\1310_Oizys\" />
-	  <Folder Include="Resources\GatheringRoutes\1319_Auxesia\" />
 	</ItemGroup>
 
 	<!-- OtterGui depends on nested submodule OtterGuiInternal; init recursively if missing -->
-	<Target Name="EnsureOtterGuiSubmodules" BeforeTargets="BeforeBuild"
-	        Condition="!Exists('$(MSBuildThisFileDirectory)..\OtterGui\OtterGuiInternal\OtterGuiInternal.csproj')">
-		<Exec Command="git submodule update --init --recursive OtterGui"
-		      WorkingDirectory="$(MSBuildThisFileDirectory).." />
+	<Target Name="EnsureOtterGuiSubmodules" BeforeTargets="BeforeBuild" Condition="!Exists('$(MSBuildThisFileDirectory)..\OtterGui\OtterGuiInternal\OtterGuiInternal.csproj')">
+		<Exec Command="git submodule update --init --recursive OtterGui" WorkingDirectory="$(MSBuildThisFileDirectory).." />
 	</Target>
 </Project>
