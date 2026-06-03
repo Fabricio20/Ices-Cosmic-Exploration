@@ -175,7 +175,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 _spmColumn,  _turninColumn, _allExpColumn];
 
 
-            /*
             var tierFlags = new (int tier, ItemFilter flag)[]
             {
                 (1, ItemFilter.HasI),   (2, ItemFilter.HasII),  (3, ItemFilter.HasIII),
@@ -188,7 +187,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 string tierName = tier switch { 1 => "I", 2 => "II", 3 => "III", 4 => "IV", 5 => "V", 6 => "VI", 7 => "VII", _ => "?" };
                 headers.Add(new RelicExpColumn(tier, flag) { Label = $"Exp {tierName}" });
             }
-            */
 
             headers.Add(_profileColumn, _notesColumn);
             this.Headers = [.. headers];
@@ -214,7 +212,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             }
 
             public override int Compare(MissionInfo lhs, MissionInfo rhs)
-                => lhs.Enabled.CompareTo(rhs.Enabled);
+                => lhs.Enabled().CompareTo(rhs.Enabled());
 
             public override void DrawColumn(MissionInfo item, int _)
             {
@@ -251,7 +249,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
 
             public override bool FilterFunc(MissionInfo item)
             {
-                return item.Enabled ? FilterValue.HasFlag(ItemFilter.Enabled) : FilterValue.HasFlag(ItemFilter.Disabled);
+                return item.Enabled() ? FilterValue.HasFlag(ItemFilter.Enabled) : FilterValue.HasFlag(ItemFilter.Disabled);
             }
         }
         public sealed class NameColumn : VerticalCenterColumnString
@@ -506,6 +504,15 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         ImGui.SameLine();
                 }
             }
+
+            public override bool FilterFunc(MissionInfo mission)
+            {
+                var exps = mission.SheetInfo.RelicXpInfo.Where(x => x.Value > 0).ToList();
+
+                if (exps.Count == 0) return true;
+
+                return exps.Any(x => FilterValue.HasFlag(TierToFlag(x.Key)));
+            }
         }
         public sealed class RelicExpColumn : ItemFilterColumn
         {
@@ -561,8 +568,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
 
             public override bool FilterFunc(MissionInfo mission)
             {
-                var hasExp = mission.SheetInfo.RelicXpInfo.GetValueOrDefault(_tier) > 0;
-                return hasExp ? FilterValue.HasFlag(_flag) : true;
+                var exps = mission.SheetInfo.RelicXpInfo.Where(x => x.Value > 0).ToList();
+
+                if (exps.Count == 0) return true;
+
+                return exps.Any(x => FilterValue.HasFlag(TierToFlag(x.Key)));
             }
         }
         public sealed class MissionColumn : MissionFilterColumn
@@ -1743,5 +1753,16 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 }
             }
         }
+        private static ItemFilter TierToFlag(int tier) => tier switch
+        {
+            1 => ItemFilter.HasI,
+            2 => ItemFilter.HasII,
+            3 => ItemFilter.HasIII,
+            4 => ItemFilter.HasIV,
+            5 => ItemFilter.HasV,
+            6 => ItemFilter.HasVI,
+            7 => ItemFilter.HasVII,
+            _ => ItemFilter.HasI
+        };
     }
 }

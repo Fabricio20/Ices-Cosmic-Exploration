@@ -359,7 +359,8 @@ namespace ICE.Scheduler.Tasks
                 else
                 {
                     if (EzThrottler.Throttle("Using drone throttle"))
-                        IceLogging.Verbose("We're waiting for the addon map to be visible. If it's not then there's a problem", tag);
+                        IceLogging.Verbose("We're waiting for the addon map to be visible. If it's not then there's a problem\n" +
+                            $"Status is currently: {status}", tag);
                 }
             }
                 
@@ -424,6 +425,8 @@ namespace ICE.Scheduler.Tasks
                     if (item != null && item->ItemId == itemId)
                     {
                         // Use the item from inventory
+                        if (EzThrottler.Throttle("Using item"))
+                            IceLogging.Verbose($"Use Item: {itemId} | Inventory Type: {invType.ToString()} | Slot: {i}");
                         AgentInventoryContext.Instance()->UseItem(item->ItemId, invType, (uint)i, 0);
                         return;
                     }
