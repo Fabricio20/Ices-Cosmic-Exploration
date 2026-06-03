@@ -161,7 +161,28 @@ namespace ICE.Ui.DebugWindowTabs
                 foreach (var planet in routes)
                 {
                     var planetTerritory = planet.Key;
-                    ImGui.Text($"Zone: {planetTerritory}");
+                    ImGui.Text($"Zone: {MoonName(planetTerritory)} ({planetTerritory})");
+
+                    // For the zone the player is in, find the flag whose nodes are
+                    // physically closest, so it can be highlighted in the list.
+                    Vector2? closestFlag = null;
+                    float closestDist = float.MaxValue;
+                    if (planetTerritory == Player.Territory.RowId)
+                    {
+                        foreach (var mapLocation in planet.Value)
+                        {
+                            foreach (var node in mapLocation.Value)
+                            {
+                                float dist = Player.DistanceTo(node.Position);
+                                if (dist < closestDist)
+                                {
+                                    closestDist = dist;
+                                    closestFlag = mapLocation.Key;
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var mapLocation in planet.Value)
                     {
                         var location = mapLocation.Key;
@@ -169,7 +190,10 @@ namespace ICE.Ui.DebugWindowTabs
                         ImGui.PushID($"{location}");
 
                         bool isSelected = selectedRoute == location;
+                        bool isClosest = closestFlag.HasValue && location == closestFlag.Value;
                         string selectable = isSelected ? $"-> X: {location.X}, Y: {location.Y}" : $"X: {location.X}, Y: {location.Y}";
+                        if (isClosest)
+                            selectable += "  <-";
 
                         var jobId = GetJobIdForFlag(planetTerritory, location);
 
@@ -178,11 +202,17 @@ namespace ICE.Ui.DebugWindowTabs
 
                         float availableWidth = ImGui.GetContentRegionAvail().X;
 
+                        if (isClosest)
+                            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.4f, 1f, 0.4f, 1f));
+
                         if (ImGui.Selectable(selectable, isSelected, ImGuiSelectableFlags.None, new Vector2(availableWidth, 20)))
                         {
                             selectedRoute = location;
                             selectedZone = planetTerritory;
                         }
+
+                        if (isClosest)
+                            ImGui.PopStyleColor();
 
                         ImGui.PopID();
                     }
@@ -203,9 +233,12 @@ namespace ICE.Ui.DebugWindowTabs
                 }
                 else
                 {
-                    string missions = string.Join(", ", GetMissionsForFlag(selectedZone, selectedRoute));
                     ImGui.Text($"Location: {MoonName(selectedZone)}");
-                    ImGui.Text($"Missions: {missions}");
+                    ImGui.Text("Missions:");
+                    foreach (var mission in GetMissionsForFlag(selectedZone, selectedRoute))
+                    {
+                        ImGui.TextWrapped($"  - {mission}");
+                    }
                     ImGui.Text($"Map Zone: X:{selectedRoute.X}, Z: {selectedRoute.Y}");
 
                     ImGui.Dummy(new Vector2(0, 5));
@@ -506,14 +539,29 @@ namespace ICE.Ui.DebugWindowTabs
                         }
                     }
 
-                    if (showRouteBetween)
-                    {
-                        PictoManager.DrawGatherNodes(routeList, selectedNode, cachedWaypointPath);
-                    }
+                    // World visuals are queued from the plugin's persistent draw hook
+                    // (see QueueWorldVisuals) so they keep rendering while this window
+                    // is collapsed - the window body stops executing when folded.
                 }
             }
 
             fileDialogManager.Draw();
+        }
+
+        // Queues the selected route's world visuals (nodes, land zones, path) into
+        // PictoManager every frame, driven from the plugin's persistent draw hook.
+        // This keeps the overlay visible when the debug window is collapsed/folded,
+        // since the window body only runs while expanded. Closing the window stops it.
+        public static void QueueWorldVisuals()
+        {
+            if (!showRouteBetween || selectedRoute == Vector2.Zero)
+                return;
+
+            var routeList = GatheringRouteLoader.GetRoute(selectedZone, selectedRoute);
+            if (routeList == null)
+                return;
+
+            PictoManager.DrawGatherNodes(routeList, selectedNode, cachedWaypointPath);
         }
 
         private static uint GetJobIdForFlag(uint territoryId, Vector2 map)
@@ -534,12 +582,12 @@ namespace ICE.Ui.DebugWindowTabs
                 return 8;
         }
 
-        private static List<uint> GetMissionsForFlag(uint territoryId, Vector2 map)
+        private static List<string> GetMissionsForFlag(uint territoryId, Vector2 map)
         {
-            List<uint> missions = new();
+            List<string> missions = new();
             foreach (var mission in CosmicHelper.SheetMissionDict.Where(x => x.Value.MapPosition == map && x.Value.TerritoryId == territoryId))
             {
-                missions.Add(mission.Key);
+                missions.Add($"{mission.Value.Name} ({mission.Key})");
             }
 
             return missions;
@@ -562,7 +610,7 @@ namespace ICE.Ui.DebugWindowTabs
                     try
                     {
                         GatheringRouteLoader.ExportAllRoutes();
-                        var exportPath = GetDefaultExportPath();
+                        var exportPath = GetEffectiveExportPath();
                         _lastExportMessage = $"Successfully exported all routes to:\n{exportPath}";
                         _lastExportSuccess = true;
                         _lastExportMessageTime = DateTime.Now;
@@ -578,7 +626,7 @@ namespace ICE.Ui.DebugWindowTabs
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip("Export all routes to plugin config folder");
+                    ImGui.SetTooltip($"Export all routes to:\n{GetEffectiveExportPath()}");
                 }
 
                 DrawExportMessage();
@@ -591,7 +639,7 @@ namespace ICE.Ui.DebugWindowTabs
                     try
                     {
                         GatheringRouteLoader.ExportRoute(zoneId, flag);
-                        var exportPath = GetDefaultExportPath();
+                        var exportPath = GetEffectiveExportPath();
                         _lastExportMessage = $"Successfully exported route to:\n{exportPath}";
                         _lastExportSuccess = true;
                         _lastExportMessageTime = DateTime.Now;
@@ -607,7 +655,7 @@ namespace ICE.Ui.DebugWindowTabs
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip("Export this route to plugin config folder");
+                    ImGui.SetTooltip($"Export this route to:\n{GetEffectiveExportPath()}");
                 }
 
                 DrawExportMessage();
@@ -665,7 +713,10 @@ namespace ICE.Ui.DebugWindowTabs
                         ? new Vector4(0.0f, 1.0f, 0.0f, 1.0f)  // Green
                         : new Vector4(1.0f, 0.0f, 0.0f, 1.0f); // Red
 
-                    ImGui.TextColored(color, _lastExportMessage);
+                    using (ImRaii.PushColor(ImGuiCol.Text, color))
+                    {
+                        ImGui.TextWrapped(_lastExportMessage);
+                    }
                 }
             }
 
@@ -673,6 +724,13 @@ namespace ICE.Ui.DebugWindowTabs
             {
                 var configDir = Svc.PluginInterface.GetPluginConfigDirectory();
                 return Path.Combine(configDir, "ExportedRoutes");
+            }
+
+            // Mirrors GatheringRouteLoader's export target resolution so the success
+            // message reflects where files actually went (custom path takes precedence).
+            private static string GetEffectiveExportPath()
+            {
+                return !string.IsNullOrEmpty(C.CustomRoutePath) ? C.CustomRoutePath : GetDefaultExportPath();
             }
         }
 

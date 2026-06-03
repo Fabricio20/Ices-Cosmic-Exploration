@@ -52,9 +52,47 @@ public static class GatheringRouteLoader
             }
         }
 
+        // Merge in routes saved on disk (custom path or exported config folder).
+        // Disk routes override embedded ones for the same zone/flag, so freshly
+        // created/captured routes appear without needing a rebuild.
+        LoadRoutesFromDisk(_cachedRoutes);
+
         PluginLog.Information($"Loaded {_cachedRoutes.Sum(x => x.Value.Count)} gathering routes across {_cachedRoutes.Count} zones");
 
         return _cachedRoutes;
+    }
+
+    private static void LoadRoutesFromDisk(Dictionary<uint, Dictionary<Vector2, List<GathNodeInfo>>> target)
+    {
+        var basePath = !string.IsNullOrEmpty(C.CustomRoutePath) ? C.CustomRoutePath : GetDefaultExportPath();
+
+        if (!Directory.Exists(basePath))
+            return;
+
+        var files = Directory.GetFiles(basePath, "*.yaml", SearchOption.AllDirectories);
+        PluginLog.Information($"Found {files.Length} gathering route files on disk at {basePath}");
+
+        foreach (var file in files)
+        {
+            try
+            {
+                var yaml = File.ReadAllText(file);
+                var route = Deserializer.Deserialize<GatheringRouteFile>(yaml);
+                if (route == null)
+                    continue;
+
+                if (!target.ContainsKey(route.ZoneId))
+                    target[route.ZoneId] = new Dictionary<Vector2, List<GathNodeInfo>>();
+
+                target[route.ZoneId][route.Flag] = route.Nodes;
+
+                PluginLog.Debug($"Loaded disk route: Zone {route.ZoneId}, Flag ({route.Flag.X}, {route.Flag.Y}), Job {route.Job}");
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error($"Failed to load route from {file}: {ex.Message}");
+            }
+        }
     }
 
     private static GatheringRouteFile LoadRouteFromResource(string resourceName)
