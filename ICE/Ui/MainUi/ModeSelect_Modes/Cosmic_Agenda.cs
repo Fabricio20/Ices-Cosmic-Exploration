@@ -14,23 +14,21 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
     {
         public static List<uint> JobOptions = new() { 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 };
 
-        public static List<PlaylistOptions> PlaylistOptionsOrder = new()
+        public static List<PlaylistOptions> PlaylistOptionsOrder { get; } = BuildPlaylistOptionsOrder();
+
+        private static List<PlaylistOptions> BuildPlaylistOptionsOrder()
         {
-            PlaylistOptions.None,
-            PlaylistOptions.SinusMax,
-            PlaylistOptions.PhaennaMax,
-            PlaylistOptions.OizysMax,
-            PlaylistOptions.AuxesiaMax,
-            PlaylistOptions.ToolMaxExp,
-            PlaylistOptions.SelectedRelicLv,
-
-            PlaylistOptions.CreditAmount,
-            PlaylistOptions.PlanetAmount,
-            PlaylistOptions.DronebitAmount,
-
-            PlaylistOptions.ClassLevel,
-            PlaylistOptions.GoldClassMissions,
-        };
+            var order = new List<PlaylistOptions> { PlaylistOptions.None };
+            order.AddRange(CosmicMoonRegistry.MaxRelicPlaylistOptions);
+            order.Add(PlaylistOptions.ToolMaxExp);
+            order.Add(PlaylistOptions.SelectedRelicLv);
+            order.Add(PlaylistOptions.CreditAmount);
+            order.Add(PlaylistOptions.PlanetAmount);
+            order.Add(PlaylistOptions.DronebitAmount);
+            order.Add(PlaylistOptions.ClassLevel);
+            order.Add(PlaylistOptions.GoldClassMissions);
+            return order;
+        }
 
         public static uint SelectedJob = 8;
         public static PlaylistOptions SelectedOption = PlaylistOptions.None;
@@ -125,7 +123,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         if (ImGui.Button("Add to Cosmic Agenda"))
                         {
                             var mode = ModeSelect.Standard;
-                            if (SelectedOption is PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax or PlaylistOptions.SelectedRelicLv)
+                            if (SelectedOption is PlaylistOptions.SelectedRelicLv
+                                || CosmicMoonRegistry.IsMaxRelicPlaylistGoal(SelectedOption))
                             {
                                 mode = ModeSelect.RelicMode;
                             }
@@ -610,12 +609,9 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             var job = agendaInfo.SelectedJob;
                             var territory = Player.Territory.RowId;
 
-                            if (selectedOption is PlaylistOptions.SinusMax 
-                                               or PlaylistOptions.PhaennaMax 
-                                               or PlaylistOptions.OizysMax 
-                                               or PlaylistOptions.AuxesiaMax
-                                               or PlaylistOptions.SelectedRelicLv 
-                                               or PlaylistOptions.ToolMaxExp)
+                            if (CosmicMoonRegistry.IsMaxRelicPlaylistGoal(selectedOption)
+                                || selectedOption is PlaylistOptions.SelectedRelicLv
+                                || selectedOption is PlaylistOptions.ToolMaxExp)
                             {
                                 var ScoreInfo = CosmicHelper.Cosmic_ClassInfo();
 

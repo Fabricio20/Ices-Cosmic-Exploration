@@ -30,7 +30,7 @@ namespace ICE.Scheduler.Tasks
             string handle = "[Task_Artifact: PathTo]";
             var zoneId = Player.Territory.RowId;
 
-            if (NpcData.MoonNpcs[zoneId].TryGetValue(NpcData.NpcType.Drone, out var npcEntry))
+            if (NpcData.TryGetNpc(zoneId, NpcData.NpcType.Drone, out var npcEntry))
             {
                 Vector3 randomPos = NpcData.GetRandomPointInCircle(npcEntry.Location_Circle, 0.5f);
                 if (!Task_NavmeshMove.Task_NavTo(randomPos, distance: 6, npcLoc: npcEntry.Location_Npc).Value)
@@ -66,7 +66,7 @@ namespace ICE.Scheduler.Tasks
             }
             else
             {
-                if (NpcData.MoonNpcs[Player.Territory.RowId].TryGetValue(NpcData.NpcType.Drone, out var droneInfo))
+                if (NpcData.TryGetNpc(Player.Territory.RowId, NpcData.NpcType.Drone, out var droneInfo))
                 {
                     Utils.TryGetObjectByDataId(droneInfo.NpcId, out var droneNpc);
                     if (EzThrottler.Throttle("Interacting with researchingway"))

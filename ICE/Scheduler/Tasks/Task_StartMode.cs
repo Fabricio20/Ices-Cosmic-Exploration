@@ -64,8 +64,10 @@ namespace ICE.Scheduler.Tasks
             var territory = Player.Territory.RowId;
             if (PlayerHelper.IsInCosmicZone())
             {
-                var planetCreditId = CosmicHelper.PlanetCreditInfo[territory];
-                PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
+                if (CosmicMoonRegistry.TryGetPlanetCreditItemId(territory, out var planetCreditId))
+                {
+                    PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
+                }
             }
 
             // Same as AgendaCheck — only moons with a cosmodrome have dronebit currency
@@ -89,10 +91,11 @@ namespace ICE.Scheduler.Tasks
                 var goal = entry.SelectedOption;
                 bool achieved = false;
 
+                if (CosmicMoonRegistry.IsMaxRelicPlaylistGoal(goal))
+                    achieved = relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal);
+                else
                 achieved = goal switch
                 {
-                    PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax
-                        => relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal),
                     PlaylistOptions.SelectedRelicLv => relicLevel >= entry.SelectedRelicLevel,
                     PlaylistOptions.CreditAmount => creditAmount >= entry.CreditAmount,
                     PlaylistOptions.PlanetAmount => planetCreditAmount >= entry.PlanetAmount,

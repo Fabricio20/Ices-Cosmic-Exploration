@@ -144,7 +144,7 @@ public static class GatheringRouteLoader
         }
 
         // Create zone subdirectory: "ZoneId_ZoneName"
-        string zoneFolderName = SanitizeFolderName($"{zoneId}_{zoneName}");
+        string zoneFolderName = GetZoneFolderName(zoneId);
         string outputPath = Path.Combine(basePath, zoneFolderName);
 
         string fileName = $"{job}_Flag_{(int)flag.X}_{(int)flag.Y}.yaml";
@@ -283,7 +283,7 @@ public static class GatheringRouteLoader
                 };
 
                 // Create zone subdirectory
-                string zoneFolderName = SanitizeFolderName($"{territoryId}_{zoneName}");
+                string zoneFolderName = GetZoneFolderName(territoryId);
                 string outputPath = Path.Combine(basePath, zoneFolderName);
 
                 string fileName = $"{jobType}_Flag_{(int)mapFlag.X}_{(int)mapFlag.Y}.yaml";
@@ -325,7 +325,15 @@ public static class GatheringRouteLoader
         return createdRoutes;
     }
 
-    // Folder names like "1319_Auxesia" — display names live in CosmicMoonRegistry
+    // Folder names like "1319_Auxesia" — matches embedded Resources/GatheringRoutes/ and registry
+    private static string GetZoneFolderName(uint territoryId)
+    {
+        if (CosmicMoonRegistry.TryGetMoon(territoryId, out var moon))
+            return SanitizeFolderName(moon.GatheringRoutesFolder);
+
+        return SanitizeFolderName($"{territoryId}_{GetZoneName(territoryId)}");
+    }
+
     private static string GetZoneName(uint territoryId) =>
         CosmicMoonRegistry.GetDisplayName(territoryId);
 }

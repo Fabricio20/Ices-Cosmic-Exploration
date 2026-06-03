@@ -141,7 +141,8 @@ namespace ICE.Scheduler.Tasks
                 if (C.StopOnceHitLunarCredits)
                 {
                     var territory = Player.Territory.RowId;
-                    var itemId = CosmicHelper.PlanetCreditInfo[territory];
+                    if (!CosmicMoonRegistry.TryGetPlanetCreditItemId(territory, out var itemId))
+                        return false;
 
                     PlayerHelper.GetItemCount(itemId, out var credits);
                     if (credits >= C.LunarCreditsCap)
@@ -231,7 +232,8 @@ namespace ICE.Scheduler.Tasks
                 if (C.StopOnceHitLunarCredits)
                 {
                     var territory = Player.Territory.RowId;
-                    var itemId = CosmicHelper.PlanetCreditInfo[territory];
+                    if (!CosmicMoonRegistry.TryGetPlanetCreditItemId(territory, out var itemId))
+                        return false;
 
                     PlayerHelper.GetItemCount(itemId, out var credits);
                     if (credits >= C.LunarCreditsCap)
@@ -364,8 +366,8 @@ namespace ICE.Scheduler.Tasks
             var territory = Player.Territory.RowId;
             if (PlayerHelper.IsInCosmicZone())
             {
-                var planetCreditId = CosmicHelper.PlanetCreditInfo[territory];
-                PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
+                if (CosmicMoonRegistry.TryGetPlanetCreditItemId(territory, out var planetCreditId))
+                    PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
             }
 
             // Dronebits exist on Oizys and Auxesia only — TryGetValue avoids throwing on Sinus/Phaenna
@@ -413,10 +415,11 @@ namespace ICE.Scheduler.Tasks
                 var goal = entry.SelectedOption;
                 bool achieved = false;
 
+                if (CosmicMoonRegistry.IsMaxRelicPlaylistGoal(goal))
+                    achieved = relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal);
+                else
                 achieved = goal switch
                 {
-                    PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax
-                        => relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal),
                     PlaylistOptions.SelectedRelicLv => relicLevel >= entry.SelectedRelicLevel,
                     PlaylistOptions.CreditAmount => creditAmount >= entry.CreditAmount,
                     PlaylistOptions.PlanetAmount => planetCreditAmount >= entry.PlanetAmount,

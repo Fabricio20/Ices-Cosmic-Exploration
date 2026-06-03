@@ -199,6 +199,16 @@ internal static class NpcData // Renamed the class to avoid conflict
         },
     };
 
+    public static bool TryGetMoon(uint territoryId, out Dictionary<NpcType, NPCInfo> npcs) =>
+        MoonNpcs.TryGetValue(territoryId, out npcs!);
+
+    public static bool TryGetNpc(uint territoryId, NpcType type, out NPCInfo npc)
+    {
+        npc = null!;
+        return MoonNpcs.TryGetValue(territoryId, out var moon)
+            && moon.TryGetValue(type, out npc!);
+    }
+
     public static Vector3 GetRandomPointInCircle(Vector3 center, float radius)
     {
         // Generate random angle (0 to 2π)

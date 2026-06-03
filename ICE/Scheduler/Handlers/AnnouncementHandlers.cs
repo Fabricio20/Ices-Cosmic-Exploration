@@ -53,10 +53,15 @@ namespace ICE.Scheduler.Handlers
             },
         };
 
-        private static readonly Dictionary<uint, Dictionary<string, (JobPairs first, JobPairs second)[]>> RedAlertByTerritory = new()
-        {
-            [CosmicMoonRegistry.Sinus.TerritoryId] = SinusRedAlert,
-        };
+        private static readonly Dictionary<string, (JobPairs first, JobPairs second)[]> EmptyRedAlert = new();
+
+        private static readonly Dictionary<uint, Dictionary<string, (JobPairs first, JobPairs second)[]>> RedAlertByTerritory =
+            CosmicMoonRegistry.All.ToDictionary(
+                m => m.TerritoryId,
+                m => m.TerritoryId == CosmicMoonRegistry.Sinus.TerritoryId ? SinusRedAlert : EmptyRedAlert);
+
+        internal static bool HasRedAlertData(uint territoryId) =>
+            RedAlertByTerritory.TryGetValue(territoryId, out var data) && data.Count > 0;
 
         internal static LocationEntry CheckForRedAlert()
         {

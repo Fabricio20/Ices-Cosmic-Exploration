@@ -797,6 +797,7 @@ public sealed partial class ICE
 
         EnsureAllMission();
         GatheringUtil.RegisterPresets();
+        CosmicMoonContent.LogContentSummary();
 
         #region Config Stuff
 

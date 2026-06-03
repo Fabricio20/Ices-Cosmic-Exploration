@@ -10,6 +10,7 @@ using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.GatheringHelper;
 using ICE.Utilities.ImGuiTools;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using static ECommons.UIHelpers.AddonMasterImplementations.AddonMaster;
 
@@ -20,16 +21,9 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
 
         private static uint SelectedJob = 8;
 
-        public enum ExpeditionTabs
-        {
-            Progress,
-            Sinus,
-            Phaenna,
-            Oizys,
-            Auxesia,
-        }
+        private const uint ProgressTabId = 0;
 
-        private static ExpeditionTabs selectedTab = ExpeditionTabs.Progress;
+        private static uint selectedTabId = ProgressTabId;
         private static bool HideCompleted = false;
 
         public static void Draw()
@@ -90,22 +84,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 ImGui.EndTable();
             }
         }
-        private static Dictionary<ExpeditionTabs, List<uint>> MissionList = new()
-        {
-            [ExpeditionTabs.Sinus] = new(),
-            [ExpeditionTabs.Phaenna] = new(),
-            [ExpeditionTabs.Oizys] = new(),
-            [ExpeditionTabs.Auxesia] = new(),
-        };
+        private static Dictionary<uint, List<uint>> MissionList = CosmicMoonRegistry.All
+            .ToDictionary(m => m.TerritoryId, _ => new List<uint>());
 
-        private static ExpeditionTabs TabForMoon(CosmicMoonDefinition moon) => moon.TerritoryId switch
-        {
-            1237 => ExpeditionTabs.Sinus,
-            1291 => ExpeditionTabs.Phaenna,
-            1310 => ExpeditionTabs.Oizys,
-            1319 => ExpeditionTabs.Auxesia,
-            _ => ExpeditionTabs.Progress,
-        };
+        private static uint TabIdForMoon(CosmicMoonDefinition moon) => moon.TerritoryId;
         private static void ClassDetails()
         {
             float scale = ImGuiHelpers.GlobalScale;
@@ -118,18 +100,18 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 if (SelectedJob != 0)
                 {
                     var classIcon = CosmicHelper.ClassInfoDict[SelectedJob];
-                    DrawImageTabButton("Class Progress", ExpeditionTabs.Progress, ref selectedTab, classIcon.JobIcon.GetWrapOrEmpty());
+                    DrawImageTabButton("Class Progress", ProgressTabId, ref selectedTabId, classIcon.JobIcon.GetWrapOrEmpty());
                 }
                 else
                 {
                     var allClassTexture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), "ICE.Resources.CosmicClassTracker.png").GetWrapOrEmpty();
-                    DrawImageTabButton("All Class progresses", ExpeditionTabs.Progress, ref selectedTab, allClassTexture);
+                    DrawImageTabButton("All Class progresses", ProgressTabId, ref selectedTabId, allClassTexture);
                 }
 
-                foreach (var moon in CosmicMoonRegistry.All)
+                foreach (var moon in CosmicMoonRegistry.All.OrderBy(m => m.ExpeditionTabIndex))
                 {
-                    var tab = TabForMoon(moon);
-                    if (tab == ExpeditionTabs.Progress)
+                    var tabId = TabIdForMoon(moon);
+                    if (tabId == ProgressTabId)
                         continue;
 
                     List<uint> missions = new();
@@ -154,17 +136,17 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         }
                     }
 
-                    MissionList[tab] = missions;
+                    MissionList[tabId] = missions;
 
                     var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), moon.IconResource).GetWrapOrEmpty();
                     ImGui.SameLine();
-                    DrawImageTabButton($"{moon.DisplayName} [{completed} / {missions.Count()}]", tab, ref selectedTab, texture);
+                    DrawImageTabButton($"{moon.DisplayName} [{completed} / {missions.Count()}]", tabId, ref selectedTabId, texture);
                 }
                 ImGui_Ice.EndCategoryButtonRow();
             }
             ImGui.EndChild();
 
-            if (selectedTab is ExpeditionTabs.Progress)
+            if (selectedTabId == ProgressTabId)
             {
                 if (ImGui.BeginChild("Class Progress"))
                 {
@@ -172,17 +154,17 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 }
                 ImGui.EndChild();
             }
-            else if (selectedTab is ExpeditionTabs.Sinus or ExpeditionTabs.Phaenna or ExpeditionTabs.Oizys or ExpeditionTabs.Auxesia)
+            else if (MissionList.TryGetValue(selectedTabId, out var missions))
             {
                 ImGui.Checkbox("Hide Completed", ref HideCompleted);
                 if (ImGui.BeginChild("Mission Completion Status Window", ImGui.GetContentRegionAvail()))
                 {
-                    MissionTable(MissionList[selectedTab]);
+                    MissionTable(missions);
                 }
                 ImGui.EndChild();
             }
         }
-        public static bool DrawImageTabButton(string label, ExpeditionTabs tab, ref ExpeditionTabs selectedTab, IDalamudTextureWrap? image = null, float spacingAfter = 5, bool disabled = false, Vector2? uv0 = null, Vector2? uv1 = null)
+        public static bool DrawImageTabButton(string label, uint tabId, ref uint selectedTabId, IDalamudTextureWrap? image = null, float spacingAfter = 5, bool disabled = false, Vector2? uv0 = null, Vector2? uv1 = null)
         {
             float scale = ImGuiHelpers.GlobalScale;
 
@@ -200,7 +182,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             float contentWidth = horizontalPadding * 2 + imageWidth + textSize.X;
             float contentHeight = verticalPadding * 2 + textSize.Y;
 
-            bool isSelected = selectedTab == tab;
+            bool isSelected = selectedTabId == tabId;
 
             var buttonRect = new Vector2(cursorPos.X + contentWidth, cursorPos.Y + contentHeight);
             bool isHovered = !disabled && ImGui.IsMouseHoveringRect(cursorPos, buttonRect)
@@ -208,7 +190,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             bool isClicked = isHovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
 
             if (isClicked && !disabled)
-                selectedTab = tab;
+                selectedTabId = tabId;
 
             var bgColor = ImGui_Ice.GetButtonColor(isSelected, isHovered, disabled);
             var textColor = disabled
@@ -236,7 +218,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             ImGui.PopStyleColor();
 
             ImGui.SetCursorScreenPos(cursorPos);
-            ImGui.InvisibleButton($"##{tab}_btn", new Vector2(contentWidth, contentHeight));
+            ImGui.InvisibleButton($"##{tabId}_btn", new Vector2(contentWidth, contentHeight));
             ImGui.SameLine(0, spacingAfter * scale);
 
             return isSelected;

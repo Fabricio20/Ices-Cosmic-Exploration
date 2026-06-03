@@ -23,12 +23,15 @@ public static class CosmicTerritoryResolver
 
     // PlaceName sheet row ID -> TerritoryType row ID (e.g. 1237 = Sinus Ardorum)
     private static readonly Dictionary<uint, uint> PlaceNameToTerritory = new();
+    // Place names shared by multiple cosmic hubs — cannot map to one territory; use row-id fallback
+    private static readonly HashSet<uint> AmbiguousPlaceNames = new();
     private static readonly HashSet<uint> KnownTerritoryIds = new();
 
     // Log each edge case once so Dalamud logs stay readable during dictionary build
     private static readonly HashSet<uint> LoggedFallbackMissions = new();
     private static readonly HashSet<uint> LoggedMismatchMissions = new();
     private static readonly HashSet<uint> LoggedUnresolvedMissions = new();
+    private static readonly HashSet<uint> LoggedAmbiguousPlaceNames = new();
 
     /// <summary>
     /// Builds the PlaceName lookup table. Safe to call multiple times; only runs the heavy work once.
@@ -39,10 +42,12 @@ public static class CosmicTerritoryResolver
             return;
 
         PlaceNameToTerritory.Clear();
+        AmbiguousPlaceNames.Clear();
         KnownTerritoryIds.Clear();
         LoggedFallbackMissions.Clear();
         LoggedMismatchMissions.Clear();
         LoggedUnresolvedMissions.Clear();
+        LoggedAmbiguousPlaceNames.Clear();
 
         // Our four known hubs first (always present even if a sheet is missing on an older client)
         foreach (var territoryId in CosmicMoonRegistry.TerritoryIds)
@@ -62,7 +67,7 @@ public static class CosmicTerritoryResolver
 
         _initialized = true;
         IceLogging.Info(
-            $"[CosmicTerritoryResolver] Registered {KnownTerritoryIds.Count} territories, {PlaceNameToTerritory.Count} place name mappings");
+            $"[CosmicTerritoryResolver] Registered {KnownTerritoryIds.Count} territories, {PlaceNameToTerritory.Count} unique place names, {AmbiguousPlaceNames.Count} shared place names (row-id fallback)");
     }
 
     /// <summary>
@@ -113,7 +118,7 @@ public static class CosmicTerritoryResolver
 
     private static uint ResolveFromPlaceName(uint placeNameRowId)
     {
-        if (placeNameRowId == 0)
+        if (placeNameRowId == 0 || AmbiguousPlaceNames.Contains(placeNameRowId))
             return 0;
 
         return PlaceNameToTerritory.TryGetValue(placeNameRowId, out var territoryId) ? territoryId : 0;
@@ -123,22 +128,10 @@ public static class CosmicTerritoryResolver
     /// Pre-PlaceName logic: mission row IDs were allocated in blocks per moon release.
     /// Do not extend the last band blindly for a fifth moon — add the moon to <see cref="CosmicMoonRegistry"/> and rely on PlaceName instead.
     /// </summary>
-    private static uint ResolveLegacyMissionRowId(uint missionRowId)
-    {
-        if (missionRowId < 545)
-            return CosmicMoonRegistry.Sinus.TerritoryId;
-        if (missionRowId < 1040)
-            return CosmicMoonRegistry.Phaenna.TerritoryId;
-        if (missionRowId < 1370)
-            return CosmicMoonRegistry.Oizys.TerritoryId;
-        if (missionRowId < 1703)
-            return CosmicMoonRegistry.Auxesia.TerritoryId;
+    private static uint ResolveLegacyMissionRowId(uint missionRowId) =>
+        CosmicMoonRegistry.ResolveTerritoryFromMissionRowId(missionRowId);
 
-        // Row IDs at or above 1703 are unknown until game data maps them; returning 0 avoids wrong planet filters
-        return 0;
-    }
-
-    // TerritoryType uses several PlaceName columns; missions may reference any of them
+    // Only hub-specific names — PlaceNameZone/PlaceNameRegion are shared across all four moons
     private static void RegisterCosmicTerritory(uint territoryId)
     {
         if (!KnownTerritoryIds.Add(territoryId))
@@ -149,8 +142,6 @@ public static class CosmicTerritoryResolver
 
         var territory = TerritorySheet.GetRow(territoryId);
         RegisterPlaceName(territory.PlaceName.RowId, territoryId);
-        RegisterPlaceName(territory.PlaceNameZone.RowId, territoryId);
-        RegisterPlaceName(territory.PlaceNameRegion.RowId, territoryId);
 
         var map = territory.Map.Value;
         if (map.RowId != 0)
@@ -162,10 +153,22 @@ public static class CosmicTerritoryResolver
         if (placeNameRowId == 0)
             return;
 
-        if (PlaceNameToTerritory.TryGetValue(placeNameRowId, out var existing) && existing != territoryId)
+        if (AmbiguousPlaceNames.Contains(placeNameRowId))
+            return;
+
+        if (PlaceNameToTerritory.TryGetValue(placeNameRowId, out var existing))
         {
-            IceLogging.Warning(
-                $"[CosmicTerritoryResolver] PlaceName {placeNameRowId} maps to territory {existing} and {territoryId}; keeping {existing}");
+            if (existing != territoryId)
+            {
+                PlaceNameToTerritory.Remove(placeNameRowId);
+                AmbiguousPlaceNames.Add(placeNameRowId);
+                if (LoggedAmbiguousPlaceNames.Add(placeNameRowId))
+                {
+                    IceLogging.Debug(
+                        $"[CosmicTerritoryResolver] PlaceName {placeNameRowId} is shared across cosmic hubs; missions using it fall back to row-id bands.");
+                }
+            }
+
             return;
         }
 

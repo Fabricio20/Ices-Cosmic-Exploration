@@ -92,6 +92,10 @@ public static partial class CosmicHelper
             "Second best weather missions for scoring, still good to focus over the basic A Ranks",
             896, 938);
 
+        // Auxesia (1370+): add AddMissions(...) blocks here when you have SPM from in-game runs.
+        // Same shape as Oizys above — float is avg score/min, string is tooltip text, last args are mission row IDs.
+        // QuickLevelList IDs below were +330 from Oizys; double-check in the mission table before trusting SPM IDs.
+
         foreach (var mission in notesDictonary)
         {
             SheetMissionDict[mission.Key].BestSPM = mission.Value;
@@ -146,6 +150,19 @@ public static partial class CosmicHelper
         1266, 1270, 1274, //
         1294, 1298, 1301, //
         1321, 1327, 1331, //
+
+        // Auxesia leveling IDs — derived +330 from Oizys; verify in-game before relying on them.
+        1370, 1375, 1378, //
+        1398, 1403, 1406, //
+        1426, 1431, 1434, //
+        1454, 1459, 1462, //
+        1482, 1487, 1490, //
+        1510, 1515, 1518, //
+        1538, 1543, 1546, //
+        1566, 1571, 1574, //
+        1596, 1600, 1604, //
+        1624, 1628, 1631, //
+        1651, 1657, 1661, //
     };
 
     public static List<uint> Unlock_MissionList = new()
@@ -223,7 +240,29 @@ public static partial class CosmicHelper
         // FSH
         1320, 1321, 1322, 1323, 1324, 1325, 1326, 1327,
 
-        // Auxesia — add mission row IDs (1370+) when leveling targets are chosen
+        // Auxesia (+330 from matching Oizys job blocks)
+        // CRP
+        1370, 1371, 1372, 1373, 1374, 1375, 1376, 1377,
+        // BSM
+        1398, 1399, 1400, 1401, 1402, 1403, 1404, 1405,
+        // ARM
+        1426, 1427, 1428, 1429, 1430, 1431, 1432, 1433,
+        // GSM
+        1454, 1455, 1456, 1457, 1458, 1459, 1460, 1461,
+        // LTW
+        1482, 1483, 1484, 1485, 1486, 1487, 1488, 1489,
+        // WVR
+        1510, 1511, 1512, 1513, 1514, 1515, 1516, 1517,
+        // ALC
+        1538, 1539, 1540, 1541, 1542, 1543, 1544, 1545,
+        // CUL
+        1566, 1567, 1568, 1569, 1570, 1571, 1572, 1573,
+        // MIN
+        1594, 1595, 1596, 1597, 1598, 1599, 1600, 1601,
+        // BTN
+        1622, 1623, 1624, 1625, 1626, 1627, 1628, 1629,
+        // FSH
+        1650, 1651, 1652, 1653, 1654, 1655, 1656, 1657,
     };
     public class LevelInfo
     {

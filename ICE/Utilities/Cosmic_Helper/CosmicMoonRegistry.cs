@@ -26,6 +26,16 @@ public sealed class CosmicMoonDefinition
     public uint? DronebitBoxId { get; init; }
     /// <summary>Max relic research stage on this hub (agenda playlist goals).</summary>
     public int MaxRelicStage { get; init; }
+    /// <summary>Expedition log tab order (0 = Sinus … 3 = Auxesia).</summary>
+    public int ExpeditionTabIndex { get; init; }
+    /// <summary>First WKSMissionUnit row ID on this hub.</summary>
+    public uint MissionRowIdStart { get; init; }
+    /// <summary>Embedded gathering route folder under Resources/GatheringRoutes/.</summary>
+    public required string GatheringRoutesFolder { get; init; }
+    /// <summary>Agenda playlist option for max relic on this hub.</summary>
+    public PlaylistOptions MaxRelicPlaylistOption { get; init; }
+    /// <summary>Seed value for navmesh aethernet unlock count until WKSHistoryBoard is read.</summary>
+    public uint DefaultAethernetLogLevel { get; init; }
     /// <summary>Expedition log research icon under Resources/ResearchIcons.</summary>
     public string? ResearchIconResource { get; init; }
 }
@@ -40,7 +50,7 @@ public sealed class CosmicMoonDefinition
 /// <para>
 /// Mission territory still comes from <see cref="CosmicTerritoryResolver"/> (game PlaceName), not from row-id bands.
 /// Hand-authored data (NPC positions, gathering YAML, fish holes, MissionScores) stays per moon but uses
-/// <see cref="TerritoryId"/> and <see cref="DisplayName"/> from this type.
+/// <see cref="CosmicMoonDefinition.TerritoryId"/> and <see cref="CosmicMoonDefinition.DisplayName"/> from this type.
 /// </para>
 /// </remarks>
 public static class CosmicMoonRegistry
@@ -54,6 +64,11 @@ public static class CosmicMoonRegistry
         PlanetCreditItemId = 45691,
         HubCenter = new(2.84f, 1.55f, -0.06f),
         MaxRelicStage = 9,
+        ExpeditionTabIndex = 0,
+        MissionRowIdStart = CosmicMissionBlocks.SinusStart,
+        GatheringRoutesFolder = "1237_Sinus Ardorum",
+        MaxRelicPlaylistOption = PlaylistOptions.SinusMax,
+        DefaultAethernetLogLevel = 15,
         ResearchIconResource = "ICE.Resources.ResearchIcons.novice.png",
     };
 
@@ -66,6 +81,11 @@ public static class CosmicMoonRegistry
         PlanetCreditItemId = 48146,
         HubCenter = new(339.90f, 52.60f, -412.10f),
         MaxRelicStage = 14,
+        ExpeditionTabIndex = 1,
+        MissionRowIdStart = CosmicMissionBlocks.PhaennaStart,
+        GatheringRoutesFolder = "1291_Phaenna",
+        MaxRelicPlaylistOption = PlaylistOptions.PhaennaMax,
+        DefaultAethernetLogLevel = 15,
         ResearchIconResource = "ICE.Resources.ResearchIcons.intermediate.png",
     };
 
@@ -81,6 +101,11 @@ public static class CosmicMoonRegistry
         DronebitCreditId = 49170,
         DronebitBoxId = 50414,
         MaxRelicStage = 17,
+        ExpeditionTabIndex = 2,
+        MissionRowIdStart = CosmicMissionBlocks.OizysStart,
+        GatheringRoutesFolder = "1310_Oizys",
+        MaxRelicPlaylistOption = PlaylistOptions.OizysMax,
+        DefaultAethernetLogLevel = 17,
         ResearchIconResource = "ICE.Resources.ResearchIcons.advance.png",
     };
 
@@ -96,6 +121,12 @@ public static class CosmicMoonRegistry
         DronebitCreditId = 49171,
         DronebitBoxId = 50415,
         MaxRelicStage = 20,
+        ExpeditionTabIndex = 3,
+        MissionRowIdStart = CosmicMissionBlocks.AuxesiaStart,
+        // Gathering YAML: ICE/Resources/GatheringRoutes/1319_Auxesia/ — copy format from 1310_Oizys (MIN_/BTN_Flag_X_Y.yaml)
+        GatheringRoutesFolder = "1319_Auxesia",
+        MaxRelicPlaylistOption = PlaylistOptions.AuxesiaMax,
+        DefaultAethernetLogLevel = 2,
         ResearchIconResource = "ICE.Resources.ResearchIcons.expert.png",
     };
 
@@ -105,6 +136,12 @@ public static class CosmicMoonRegistry
 
     public static readonly IReadOnlyDictionary<uint, CosmicMoonDefinition> ByTerritoryId =
         All.ToDictionary(m => m.TerritoryId);
+
+    public static readonly IReadOnlyDictionary<PlaylistOptions, CosmicMoonDefinition> ByMaxRelicPlaylistOption =
+        All.ToDictionary(m => m.MaxRelicPlaylistOption);
+
+    public static readonly IReadOnlyList<PlaylistOptions> MaxRelicPlaylistOptions =
+        All.Select(m => m.MaxRelicPlaylistOption).ToArray();
 
     // These dictionaries back the existing CosmicHelper.PlanetCreditInfo / HubCenter / DronebitInfo fields
     public static readonly Dictionary<uint, uint> PlanetCredits =
@@ -176,15 +213,45 @@ public static class CosmicMoonRegistry
     public static CosmicMoonDefinition? GetMoonForTerritory(uint territoryId) =>
         TryGetMoon(territoryId, out var moon) ? moon : null;
 
-    /// <summary>Target relic stage for max-relic playlist goals — one lookup instead of hardcoded 9/14/17/20.</summary>
-    public static int GetMaxRelicGoal(PlaylistOptions option) => option switch
+    public static bool TryGetPlanetCreditItemId(uint territoryId, out uint itemId) =>
+        PlanetCredits.TryGetValue(territoryId, out itemId);
+
+    /// <summary>Target relic stage for max-relic playlist goals.</summary>
+    public static int GetMaxRelicGoal(PlaylistOptions option) =>
+        TryGetMoonForMaxRelicOption(option, out var moon) ? moon.MaxRelicStage : 0;
+
+    public static bool IsMaxRelicPlaylistGoal(PlaylistOptions option) =>
+        TryGetMoonForMaxRelicOption(option, out _);
+
+    public static bool TryGetMoonForMaxRelicOption(PlaylistOptions option, out CosmicMoonDefinition moon) =>
+        ByMaxRelicPlaylistOption.TryGetValue(option, out moon!);
+
+    /// <summary>Legacy row-id band when PlaceName data is missing (see CosmicTerritoryResolver).</summary>
+    public static uint ResolveTerritoryFromMissionRowId(uint missionRowId)
     {
-        PlaylistOptions.SinusMax => Sinus.MaxRelicStage,
-        PlaylistOptions.PhaennaMax => Phaenna.MaxRelicStage,
-        PlaylistOptions.OizysMax => Oizys.MaxRelicStage,
-        PlaylistOptions.AuxesiaMax => Auxesia.MaxRelicStage,
-        _ => 0,
-    };
+        if (missionRowId < CosmicMissionBlocks.PhaennaStart)
+            return Sinus.TerritoryId;
+        if (missionRowId < CosmicMissionBlocks.OizysStart)
+            return Phaenna.TerritoryId;
+        if (missionRowId < CosmicMissionBlocks.AuxesiaStart)
+            return Oizys.TerritoryId;
+        if (missionRowId < CosmicMissionBlocks.UnknownMissionStart)
+            return Auxesia.TerritoryId;
+
+        return 0;
+    }
+
+    /// <summary>True when Unlock_MissionList has at least one mission on this hub.</summary>
+    public static bool HasUnlockContent(CosmicMoonDefinition moon)
+    {
+        foreach (var missionId in CosmicHelper.Unlock_MissionList)
+        {
+            if (CosmicHelper.SheetMissionDict.TryGetValue(missionId, out var info) && info.TerritoryId == moon.TerritoryId)
+                return true;
+        }
+
+        return false;
+    }
 
     /// <summary>True when QuickLevelList has at least one mission on this hub.</summary>
     public static bool HasLevelingContent(CosmicMoonDefinition moon)

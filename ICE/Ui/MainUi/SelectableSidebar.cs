@@ -4,6 +4,7 @@ using Dalamud.Interface.Utility.Raii;
 using ECommons.GameHelpers;
 using ICE.Ui.MainUi.ModeSelect_Modes;
 using ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable;
+using ICE.Utilities;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.ImGuiTools;
 using System.Collections.Generic;
@@ -98,7 +99,9 @@ namespace ICE.Ui.MainUi
                 {
                     ImGui_Ice.DrawSelectable_Image(65112, "Credit Shopping", WindowSelection.CreditShopping);
                     ImGui_Ice.DrawSelectable_Image(65127, "Gambling Settings", WindowSelection.GambaShopping);
-                    ImGui_Ice.DrawSelectable_Image(65138, "Dronebit Settings", WindowSelection.DroneShopping);
+
+                    if (ShowDronebitSettings())
+                        ImGui_Ice.DrawSelectable_Image(65138, "Dronebit Settings", WindowSelection.DroneShopping);
                 }
                 if (ImGui_Ice.Sidebar_CollaspableHeader("Settings", SidebarTabs.Settings, icon: FontAwesomeIcon.Cog))
                 {
@@ -161,6 +164,15 @@ namespace ICE.Ui.MainUi
 #endif
             }
         }
+        private static bool ShowDronebitSettings()
+        {
+            if (!PlayerHelper.IsInCosmicZone())
+                return true;
+
+            return CosmicMoonRegistry.TryGetMoon((uint)Svc.ClientState.TerritoryType, out var moon)
+                && moon.HasCosmodrome;
+        }
+
         private static void PluginIcon()
         {
             string PluginIcon = "ICE.Resources.Icon.png";
