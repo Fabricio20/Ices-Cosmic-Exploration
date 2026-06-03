@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using OtterGui;
 using OtterGui.Table;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using static ICE.ConfigFiles.Config;
 using static ICE.Utilities.Cosmic_Helper.CosmicHelper;
@@ -825,8 +826,9 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             public PlanetColumn()
             {
                 Flags = ImGuiTableColumnFlags.None;
-                SetFlags(ItemFilter.Sinus, ItemFilter.Phaenna, ItemFilter.Oizys, ItemFilter.Auxesia);
-                SetNames("Sinus", "Phaenna", "Oizys", "Auxesia");
+                var moons = CosmicMoonRegistry.All;
+                SetFlags(moons.Select(m => m.PlanetFilter).ToArray());
+                SetNames(moons.Select(m => m.DisplayName).ToArray());
             }
 
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.TerritoryId.CompareTo(rhs.SheetInfo.TerritoryId);
@@ -839,29 +841,13 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 var columnWidth = ImGui.GetColumnWidth();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (columnWidth - frameHeight) / 2);
 
-                string planetIcon = item.SheetInfo.TerritoryId switch
-                {
-                    1237 => "ICE.Resources.Sinus_Ardorum.png",
-                    1291 => "ICE.Resources.Phaenna.png",
-                    1310 => "ICE.Resources.Oizys.png",
-                    1319 => "ICE.Resources.Auxesia.png",
-                    _ => "ICE.Resources.Sinus_Ardorum.png",
-                };
+                var planetIcon = CosmicMoonRegistry.GetIconResource(item.SheetInfo.TerritoryId);
 
                 var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), planetIcon).GetWrapOrEmpty();
                 ImGui.Image(texture.Handle, size);
             }
-            public override bool FilterFunc(MissionInfo item)
-            {
-                return item.SheetInfo.TerritoryId switch
-                {
-                    1237 => FilterValue.HasFlag(ItemFilter.Sinus),
-                    1291 => FilterValue.HasFlag(ItemFilter.Phaenna),
-                    1310 => FilterValue.HasFlag(ItemFilter.Oizys),
-                    1319 => FilterValue.HasFlag(ItemFilter.Auxesia),
-                    _ => false
-                };
-            }
+            public override bool FilterFunc(MissionInfo item) =>
+                CosmicMoonRegistry.ItemFilterIncludesTerritory(FilterValue, item.SheetInfo.TerritoryId);
         }
         public sealed class JobColumn : JobFilterColumn
         {

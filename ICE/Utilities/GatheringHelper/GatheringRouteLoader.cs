@@ -144,7 +144,7 @@ public static class GatheringRouteLoader
         }
 
         // Create zone subdirectory: "ZoneId_ZoneName"
-        string zoneFolderName = SanitizeFolderName($"{zoneId}_{zoneName}");
+        string zoneFolderName = GetZoneFolderName(zoneId);
         string outputPath = Path.Combine(basePath, zoneFolderName);
 
         string fileName = $"{job}_Flag_{(int)flag.X}_{(int)flag.Y}.yaml";
@@ -283,7 +283,7 @@ public static class GatheringRouteLoader
                 };
 
                 // Create zone subdirectory
-                string zoneFolderName = SanitizeFolderName($"{territoryId}_{zoneName}");
+                string zoneFolderName = GetZoneFolderName(territoryId);
                 string outputPath = Path.Combine(basePath, zoneFolderName);
 
                 string fileName = $"{jobType}_Flag_{(int)mapFlag.X}_{(int)mapFlag.Y}.yaml";
@@ -325,16 +325,15 @@ public static class GatheringRouteLoader
         return createdRoutes;
     }
 
-    private static string GetZoneName(uint territoryId)
+    // Folder names like "1319_Auxesia" — matches embedded Resources/GatheringRoutes/ and registry
+    private static string GetZoneFolderName(uint territoryId)
     {
-        // You can expand this with a proper territory lookup if you have access to game sheets
-        // For now, using your existing mappings
-        return territoryId switch
-        {
-            1237 => "Sinus Ardorum",
-            1291 => "Phaenna",
-            1310 => "Oizys",
-            _ => $"Zone_{territoryId}" // Fallback for unknown zones
-        };
+        if (CosmicMoonRegistry.TryGetMoon(territoryId, out var moon))
+            return SanitizeFolderName(moon.GatheringRoutesFolder);
+
+        return SanitizeFolderName($"{territoryId}_{GetZoneName(territoryId)}");
     }
+
+    private static string GetZoneName(uint territoryId) =>
+        CosmicMoonRegistry.GetDisplayName(territoryId);
 }

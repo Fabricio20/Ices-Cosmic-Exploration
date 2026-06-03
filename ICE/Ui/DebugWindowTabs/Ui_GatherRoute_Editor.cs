@@ -18,10 +18,8 @@ namespace ICE.Ui.DebugWindowTabs
         private static uint selectedZone = 0;
         private static uint selectedNode = 0;
 
-        private static bool showOnlyVisibleNodes = false;
         private static float maxDistance = 75.0f;
 
-        private static bool showSelectedNode = false;
         private static bool showRouteBetween = true;
 
         private static bool _isGeneratingFan = false;
@@ -547,17 +545,9 @@ namespace ICE.Ui.DebugWindowTabs
             return missions;
         }
 
-        private static string MoonName(uint territoryId)
-        {
-            if (territoryId == 1237)
-                return "Sinus Ardorum";
-            else if (territoryId == 1291)
-                return "Phaenna";
-            else
-            {
-                return "???";
-            }
-        }
+        // territoryId is TerritoryType (1319), not WKSMissionUnit row ID
+        private static string MoonName(uint territoryId) =>
+            CosmicMoonRegistry.GetDisplayName(territoryId);
 
         public static class GatheringRouteExportUI
         {

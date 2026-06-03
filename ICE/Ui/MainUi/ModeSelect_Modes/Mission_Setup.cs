@@ -45,7 +45,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             { "Red Mage", 35 },
             { "Pictomancer", 42 }
         };
-        private static string newListName = "";
 
         public static Mission_Table? MissionTable;
         private static List<CosmicHelper.MissionInfo> TableItems = [];
@@ -158,9 +157,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + yOffset);
 
                 bool unsupportedArtisan = false; // xpLeveling && CosmicHelper.CrafterJobList.Contains((uint)Player.Job);
-                bool unsupportedMoon = false; // PlayerHelper.IsInOizys() && xpLeveling;
+                bool unsupportedMoon = xpLeveling
+                    && CosmicMoonRegistry.TryGetMoon(Player.Territory.RowId, out var currentMoon)
+                    && !CosmicMoonRegistry.HasLevelingContent(currentMoon);
 
-                // TODO: Make sure to disable new moon for leveling / gathering. . . 
+                // Leveling on a hub requires QuickLevelList entries; gathering still needs route YAML per territory
                 using (ImRaii.Disabled(SchedulerMain.State != IceState.Idle || !usingSupportedJob || unsupportedMoon))
                 {
                     if (ImGui.Button("Start", new Vector2(150 * scale, 0)))
@@ -182,7 +183,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         ImGui.EndTooltip();
                     }
                 }
-                else if (unsupportedMoon)
+                else if (unsupportedMoon && CosmicMoonRegistry.TryGetMoon(Player.Territory.RowId, out var unsupportedHub))
                 {
                     ImGui.SameLine(0, 10 * scale);
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + yOffset);
@@ -190,8 +191,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
-                        ImGui.Text("Hey! This moon is currently not supported for leveling yet. (It's also worse than sinus or phaenna)");
-                        ImGui.Text("Please wait till I get the time to focus on this");
+                        ImGui.Text($"Hey! {unsupportedHub.DisplayName} is not supported for leveling yet.");
+                        var missing = new List<string>();
+                        if (!CosmicMoonRegistry.HasLevelingContent(unsupportedHub))
+                            missing.Add("QuickLevelList missions");
+                        if (!CosmicMoonContent.HasGatheringRoutes(unsupportedHub.TerritoryId))
+                            missing.Add("gathering routes");
+                        if (missing.Count > 0)
+                            ImGui.Text($"Still needed: {string.Join(", ", missing)}.");
                         ImGui.EndTooltip();
                     }
                 }
