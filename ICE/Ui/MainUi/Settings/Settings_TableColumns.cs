@@ -128,11 +128,6 @@ public static class Settings_TableColumns
 
     private static TurninState HighestTurnin = TurninState.Gold;
 
-    private static bool AnyTurnin = true;
-    private static bool TurninGold = false;
-    private static bool TurninSilver = false;
-    private static bool TurninBronze = false;
-
     public static void GeneralMissionSettings()
     {
         if (ImGui.Button("Quick Apply Turnins"))

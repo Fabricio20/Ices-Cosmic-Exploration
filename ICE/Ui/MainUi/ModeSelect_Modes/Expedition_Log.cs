@@ -408,284 +408,45 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             var spacing = ImGui.GetStyle().ItemSpacing.X;
                             var totalWidth = (buttonSize.X * 3) + (spacing * 2);
 
-                            // Center the group
                             var cursorPosX = ImGui.GetCursorPosX();
                             var availWidth = ImGui.GetContentRegionAvail().X;
                             ImGui.SetCursorPosX(cursorPosX + (availWidth - totalWidth) * 0.5f);
 
-                            // Gold
-                            ImGui.PushStyleColor(ImGuiCol.Text, missionConfig.TurninGoal == TurninState.Gold ? GoldColor : DisabledColor);
-                            if (ImGuiEx.IconButton(FontAwesomeIcon.Trophy, "##Gold", buttonSize))
+                            var turninGoal = missionConfig.TurninGoal;
+                            var goldEnabled = turninGoal >= TurninState.Gold;
+                            var silverEnabled = turninGoal >= TurninState.Silver;
+                            var bronzeEnabled = turninGoal >= TurninState.Bronze;
+
+                            void DrawTurninButton(string id, TurninState state, bool enabled, Vector4 color, string tooltipLabel)
                             {
-                                // If AutoTurnin is on, we're enabling individual controls
-                                if (missionConfig.AutoTurnin)
+                                ImGui.PushStyleColor(ImGuiCol.Text, enabled ? color : DisabledColor);
+                                if (ImGuiEx.IconButton(FontAwesomeIcon.Trophy, id, buttonSize))
                                 {
-                                    missionConfig.AutoTurnin = false;
-                                    missionConfig.TurninGold = false;  // Turn off gold
-                                    missionConfig.TurninSilver = true; // Keep others on
-                                    missionConfig.TurninBronze = true;
+                                    missionConfig.TurninGoal = state;
+                                    C.SaveDebounced();
                                 }
-                                else
+                                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                                 {
-                                    // Toggle the button
-                                    missionConfig.TurninGold = !missionConfig.TurninGold;
-
-                                    // Check the new state
-                                    if (missionConfig.TurninGold && missionConfig.TurninSilver && missionConfig.TurninBronze)
-                                    {
-                                        // All three enabled -> AutoTurnin mode
-                                        missionConfig.AutoTurnin = true;
-                                        missionConfig.TurninGold = false;
-                                        missionConfig.TurninSilver = false;
-                                        missionConfig.TurninBronze = false;
-                                    }
-                                    else if (!missionConfig.TurninGold && !missionConfig.TurninSilver && !missionConfig.TurninBronze)
-                                    {
-                                        // All three disabled -> AutoTurnin mode (don't disable any)
-                                        missionConfig.AutoTurnin = true;
-                                    }
+                                    missionConfig.TurninGoal = state;
+                                    C.SaveDebounced();
                                 }
-
-                                C.SaveDebounced();
-                            }
-                            // Right-click to enable only this one
-                            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                            {
-                                missionConfig.AutoTurnin = false;
-                                missionConfig.TurninGold = true;
-                                missionConfig.TurninSilver = false;
-                                missionConfig.TurninBronze = false;
-                                C.SaveDebounced();
-                            }
-                            ImGui.PopStyleColor();
-                            if (ImGui.IsItemHovered())
-                            {
-                                ImGui.BeginTooltip();
-
-                                if (missionConfig.AutoTurnin)
+                                ImGui.PopStyleColor();
+                                if (ImGui.IsItemHovered())
                                 {
-                                    ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
+                                    ImGui.BeginTooltip();
+                                    ImGuiEx.Icon(color, FontAwesomeIcon.Trophy);
                                     ImGui.SameLine();
-                                    ImGui.Text("Gold Enabled");
-
-                                    ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Silver Enabled");
-
-                                    ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Bronze Enabled");
+                                    ImGui.Text($"{tooltipLabel} — turn in at {state.ToString().ToLower()} or better");
+                                    ImGui.Text($"Right click to set minimum turnin to {state.ToString().ToLower()}");
+                                    ImGui.EndTooltip();
                                 }
-                                else
-                                {
-                                    if (missionConfig.TurninGold)
-                                    {
-                                        ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Gold Enabled");
-                                    }
-                                    if (missionConfig.TurninSilver)
-                                    {
-                                        ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Silver Enabled");
-                                    }
-                                    if (missionConfig.TurninBronze)
-                                    {
-                                        ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Bronze Enabled");
-                                    }
-                                }
-
-                                ImGui.Text("Right click to only enable gold");
-
-                                ImGui.EndTooltip();
                             }
 
+                            DrawTurninButton("##Gold", TurninState.Gold, goldEnabled, GoldColor, "Gold");
                             ImGui.SameLine();
-
-                            // Silver
-                            ImGui.PushStyleColor(ImGuiCol.Text, missionConfig.TurninSilver || missionConfig.AutoTurnin ? SilverColor : DisabledColor);
-                            if (ImGuiEx.IconButton(FontAwesomeIcon.Trophy, "##Silver", buttonSize))
-                            {
-                                // If AutoTurnin is on, we're enabling individual controls
-                                if (missionConfig.AutoTurnin)
-                                {
-                                    missionConfig.AutoTurnin = false;
-                                    missionConfig.TurninGold = true;
-                                    missionConfig.TurninSilver = false;  // Turn off silver
-                                    missionConfig.TurninBronze = true;
-                                }
-                                else
-                                {
-                                    // Toggle the button
-                                    missionConfig.TurninSilver = !missionConfig.TurninSilver;
-
-                                    // Check the new state
-                                    if (missionConfig.TurninGold && missionConfig.TurninSilver && missionConfig.TurninBronze)
-                                    {
-                                        // All three enabled -> AutoTurnin mode
-                                        missionConfig.AutoTurnin = true;
-                                        missionConfig.TurninGold = false;
-                                        missionConfig.TurninSilver = false;
-                                        missionConfig.TurninBronze = false;
-                                    }
-                                    else if (!missionConfig.TurninGold && !missionConfig.TurninSilver && !missionConfig.TurninBronze)
-                                    {
-                                        // All three disabled -> AutoTurnin mode (don't disable any)
-                                        missionConfig.AutoTurnin = true;
-                                    }
-                                }
-
-                                C.SaveDebounced();
-                            }
-                            // Right-click to enable only this one
-                            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                            {
-                                missionConfig.AutoTurnin = false;
-                                missionConfig.TurninGold = false;
-                                missionConfig.TurninSilver = true;
-                                missionConfig.TurninBronze = false;
-                                C.SaveDebounced();
-                            }
-                            ImGui.PopStyleColor();
-                            if (ImGui.IsItemHovered())
-                            {
-                                ImGui.BeginTooltip();
-
-                                if (missionConfig.AutoTurnin)
-                                {
-                                    ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Gold Enabled");
-
-                                    ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Silver Enabled");
-
-                                    ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Bronze Enabled");
-                                }
-                                else
-                                {
-                                    if (missionConfig.TurninGold)
-                                    {
-                                        ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Gold Enabled");
-                                    }
-                                    if (missionConfig.TurninSilver)
-                                    {
-                                        ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Silver Enabled");
-                                    }
-                                    if (missionConfig.TurninBronze)
-                                    {
-                                        ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Bronze Enabled");
-                                    }
-                                }
-
-                                ImGui.Text("Right click to only enable silver");
-
-                                ImGui.EndTooltip();
-                            }
-
+                            DrawTurninButton("##Silver", TurninState.Silver, silverEnabled, SilverColor, "Silver");
                             ImGui.SameLine();
-
-                            // Bronze
-                            ImGui.PushStyleColor(ImGuiCol.Text, missionConfig.TurninBronze || missionConfig.AutoTurnin ? BronzeColor : DisabledColor);
-                            if (ImGuiEx.IconButton(FontAwesomeIcon.Trophy, "##Bronze", buttonSize))
-                            {
-                                // If AutoTurnin is on, we're enabling individual controls
-                                if (missionConfig.AutoTurnin)
-                                {
-                                    missionConfig.AutoTurnin = false;
-                                    missionConfig.TurninGold = true;
-                                    missionConfig.TurninSilver = true;
-                                    missionConfig.TurninBronze = false;  // Turn off bronze
-                                }
-                                else
-                                {
-                                    // Toggle the button
-                                    missionConfig.TurninBronze = !missionConfig.TurninBronze;
-
-                                    // Check the new state
-                                    if (missionConfig.TurninGold && missionConfig.TurninSilver && missionConfig.TurninBronze)
-                                    {
-                                        // All three enabled -> AutoTurnin mode
-                                        missionConfig.AutoTurnin = true;
-                                        missionConfig.TurninGold = false;
-                                        missionConfig.TurninSilver = false;
-                                        missionConfig.TurninBronze = false;
-                                    }
-                                    else if (!missionConfig.TurninGold && !missionConfig.TurninSilver && !missionConfig.TurninBronze)
-                                    {
-                                        // All three disabled -> AutoTurnin mode (don't disable any)
-                                        missionConfig.AutoTurnin = true;
-                                    }
-                                }
-
-                                C.SaveDebounced();
-                            }
-                            // Right-click to enable only this one
-                            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                            {
-                                missionConfig.AutoTurnin = false;
-                                missionConfig.TurninGold = false;
-                                missionConfig.TurninSilver = false;
-                                missionConfig.TurninBronze = true;
-                                C.SaveDebounced();
-                            }
-                            ImGui.PopStyleColor();
-                            if (ImGui.IsItemHovered())
-                            {
-                                ImGui.BeginTooltip();
-
-                                if (missionConfig.AutoTurnin)
-                                {
-                                    ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Gold Enabled");
-
-                                    ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Silver Enabled");
-
-                                    ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                    ImGui.SameLine();
-                                    ImGui.Text("Bronze Enabled");
-                                }
-                                else
-                                {
-                                    if (missionConfig.TurninGold)
-                                    {
-                                        ImGuiEx.Icon(GoldColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Gold Enabled");
-                                    }
-                                    if (missionConfig.TurninSilver)
-                                    {
-                                        ImGuiEx.Icon(SilverColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Silver Enabled");
-                                    }
-                                    if (missionConfig.TurninBronze)
-                                    {
-                                        ImGuiEx.Icon(BronzeColor, FontAwesomeIcon.Trophy);
-                                        ImGui.SameLine();
-                                        ImGui.Text("Bronze Enabled");
-                                    }
-                                }
-
-                                ImGui.Text("Right click to only enable bronze");
-
-                                ImGui.EndTooltip();
-                            }
+                            DrawTurninButton("##Bronze", TurninState.Bronze, bronzeEnabled, BronzeColor, "Bronze");
                         }
 
                         ImGui.TableNextColumn();
