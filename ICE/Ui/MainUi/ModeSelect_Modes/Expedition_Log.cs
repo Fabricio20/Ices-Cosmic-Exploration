@@ -25,7 +25,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             Progress,
             Sinus,
             Phaenna,
-            Oizys
+            Oizys,
+            Auxesia,
         }
 
         private static ExpeditionTabs selectedTab = ExpeditionTabs.Progress;
@@ -94,6 +95,16 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             [ExpeditionTabs.Sinus] = new(),
             [ExpeditionTabs.Phaenna] = new(),
             [ExpeditionTabs.Oizys] = new(),
+            [ExpeditionTabs.Auxesia] = new(),
+        };
+
+        private static ExpeditionTabs TabForMoon(CosmicMoonDefinition moon) => moon.TerritoryId switch
+        {
+            1237 => ExpeditionTabs.Sinus,
+            1291 => ExpeditionTabs.Phaenna,
+            1310 => ExpeditionTabs.Oizys,
+            1319 => ExpeditionTabs.Auxesia,
+            _ => ExpeditionTabs.Progress,
         };
         private static void ClassDetails()
         {
@@ -104,13 +115,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
 
             if (ImGui.BeginChild("##Expedition_TabScroll", new(0, buttonRowHeight), false, ImGuiWindowFlags.HorizontalScrollbar))
             {
-                var moons = new (string Name, string Asset, ExpeditionTabs type, uint Territory)[]
-                {
-                    ("Sinus Ardorum", "ICE.Resources.Sinus_Ardorum.png", ExpeditionTabs.Sinus, 1237),
-                    ("Phaenna", "ICE.Resources.Phaenna.png", ExpeditionTabs.Phaenna, 1291),
-                    ("Oizys", "ICE.Resources.Oizys.png", ExpeditionTabs.Oizys, 1310),
-                };
-
                 if (SelectedJob != 0)
                 {
                     var classIcon = CosmicHelper.ClassInfoDict[SelectedJob];
@@ -121,14 +125,19 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     var allClassTexture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), "ICE.Resources.CosmicClassTracker.png").GetWrapOrEmpty();
                     DrawImageTabButton("All Class progresses", ExpeditionTabs.Progress, ref selectedTab, allClassTexture);
                 }
-                foreach (var moon in moons)
+
+                foreach (var moon in CosmicMoonRegistry.All)
                 {
+                    var tab = TabForMoon(moon);
+                    if (tab == ExpeditionTabs.Progress)
+                        continue;
+
                     List<uint> missions = new();
                     uint completed = 0;
 
                     if (SelectedJob != 0)
                     {
-                        foreach (var mission in CosmicHelper.SheetMissionDict.Where(x => x.Value.Jobs.Contains(SelectedJob)).Where(x => x.Value.TerritoryId == moon.Territory))
+                        foreach (var mission in CosmicHelper.SheetMissionDict.Where(x => x.Value.Jobs.Contains(SelectedJob)).Where(x => x.Value.TerritoryId == moon.TerritoryId))
                         {
                             missions.Add(mission.Key);
                             if (mission.Value.CompletionStatus is CosmicHelper.Status.Gold)
@@ -137,7 +146,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     }
                     else
                     {
-                        foreach (var mission in CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == moon.Territory))
+                        foreach (var mission in CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == moon.TerritoryId))
                         {
                             missions.Add(mission.Key);
                             if (mission.Value.CompletionStatus is CosmicHelper.Status.Gold)
@@ -145,11 +154,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         }
                     }
 
-                    MissionList[moon.type] = missions;
+                    MissionList[tab] = missions;
 
-                    var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), moon.Asset).GetWrapOrEmpty();
+                    var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), moon.IconResource).GetWrapOrEmpty();
                     ImGui.SameLine();
-                    DrawImageTabButton($"{moon.Name} [{completed} / {missions.Count()}]", moon.type, ref selectedTab, texture);
+                    DrawImageTabButton($"{moon.DisplayName} [{completed} / {missions.Count()}]", tab, ref selectedTab, texture);
                 }
                 ImGui_Ice.EndCategoryButtonRow();
             }
@@ -163,7 +172,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 }
                 ImGui.EndChild();
             }
-            else if (selectedTab is ExpeditionTabs.Sinus or ExpeditionTabs.Phaenna or ExpeditionTabs.Oizys)
+            else if (selectedTab is ExpeditionTabs.Sinus or ExpeditionTabs.Phaenna or ExpeditionTabs.Oizys or ExpeditionTabs.Auxesia)
             {
                 ImGui.Checkbox("Hide Completed", ref HideCompleted);
                 if (ImGui.BeginChild("Mission Completion Status Window", ImGui.GetContentRegionAvail()))
@@ -928,21 +937,18 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
 
             if (SelectedJob == 0)
             {
-                var researchTypes = new (string Name, string Asset, int MaxLv)[]
-                {
-                    ("Sinus", "ICE.Resources.ResearchIcons.novice.png", 9),
-                    ("Phaenna", "ICE.Resources.ResearchIcons.intermediate.png", 14),
-                    ("Oizys", "ICE.Resources.ResearchIcons.advance.png", 17),
-                };
+                var researchTypes = CosmicMoonRegistry.All
+                    .Where(m => m.ResearchIconResource != null)
+                    .Select(m => (Name: m.DisplayName, Asset: m.ResearchIconResource!, MaxRelicStage: m.MaxRelicStage))
+                    .ToArray();
 
-                if (ImGui.BeginTable("Class Progress: Icon Preview", 3, ImGuiTableFlags.SizingFixedFit))
+                if (ImGui.BeginTable("Class Progress: Icon Preview", researchTypes.Length, ImGuiTableFlags.SizingFixedFit))
                 {
-                    ImGui.TableSetupColumn("Sinus");
-                    ImGui.TableSetupColumn("Phaenna");
-                    ImGui.TableSetupColumn("Oizys");
+                    for (int i = 0; i < researchTypes.Length; i++)
+                        ImGui.TableSetupColumn(researchTypes[i].Name);
 
                     ImGui.TableNextRow();
-                    for (int i = 0; i < researchTypes.Count(); i++)
+                    for (int i = 0; i < researchTypes.Length; i++)
                     {
                         var type = researchTypes[i];
                         var icon = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), type.Asset).GetWrapOrEmpty();
@@ -951,11 +957,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     }
 
                     ImGui.TableNextRow();
-                    for (int i = 0; i < researchTypes.Count(); i++)
+                    for (int i = 0; i < researchTypes.Length; i++)
                     {
                         var type = researchTypes[i];
                         ImGui.TableSetColumnIndex(i);
-                        var count = expInfo.Where(x => x.Value.Stage_Current >= type.MaxLv).Count();
+                        var count = expInfo.Where(x => x.Value.Stage_Current >= type.MaxRelicStage).Count();
                         ImGui_Ice.Table_FullCenterText($"{count}/11");
                     }
 

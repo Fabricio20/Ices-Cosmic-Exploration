@@ -158,9 +158,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + yOffset);
 
                 bool unsupportedArtisan = false; // xpLeveling && CosmicHelper.CrafterJobList.Contains((uint)Player.Job);
-                bool unsupportedMoon = false; // PlayerHelper.IsInOizys() && xpLeveling;
+                bool unsupportedMoon = xpLeveling
+                    && CosmicMoonRegistry.TryGetMoon(Player.Territory.RowId, out var currentMoon)
+                    && !CosmicMoonRegistry.HasLevelingContent(currentMoon);
 
-                // TODO: Make sure to disable new moon for leveling / gathering. . . 
+                // Leveling / gathering on a hub requires QuickLevelList + route YAML — Auxesia pending content
                 using (ImRaii.Disabled(SchedulerMain.State != IceState.Idle || !usingSupportedJob || unsupportedMoon))
                 {
                     if (ImGui.Button("Start", new Vector2(150 * scale, 0)))
@@ -190,8 +192,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
-                        ImGui.Text("Hey! This moon is currently not supported for leveling yet. (It's also worse than sinus or phaenna)");
-                        ImGui.Text("Please wait till I get the time to focus on this");
+                        ImGui.Text("Hey! This moon is currently not supported for leveling yet.");
+                        ImGui.Text("QuickLevelList and gathering routes are still being authored for this hub.");
                         ImGui.EndTooltip();
                     }
                 }

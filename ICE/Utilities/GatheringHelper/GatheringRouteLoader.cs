@@ -325,16 +325,7 @@ public static class GatheringRouteLoader
         return createdRoutes;
     }
 
-    private static string GetZoneName(uint territoryId)
-    {
-        // You can expand this with a proper territory lookup if you have access to game sheets
-        // For now, using your existing mappings
-        return territoryId switch
-        {
-            1237 => "Sinus Ardorum",
-            1291 => "Phaenna",
-            1310 => "Oizys",
-            _ => $"Zone_{territoryId}" // Fallback for unknown zones
-        };
-    }
+    // Folder names like "1319_Auxesia" — display names live in CosmicMoonRegistry
+    private static string GetZoneName(uint territoryId) =>
+        CosmicMoonRegistry.GetDisplayName(territoryId);
 }

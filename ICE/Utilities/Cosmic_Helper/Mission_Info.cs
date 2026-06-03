@@ -54,13 +54,8 @@ public static partial class CosmicHelper
         { 7, "VII" },
     };
 
-    public static readonly Dictionary<uint, uint> PlanetCreditInfo = new()
-    {
-        [1237] = 45691, // sinus
-        [1291] = 48146, // phaenna
-        [1310] = 48147, // Oizys
-        [1319] = 48148, // Auxesia
-    };
+    // Planet token item IDs per hub — defined in CosmicMoonRegistry (one place to update per moon)
+    public static readonly Dictionary<uint, uint> PlanetCreditInfo = CosmicMoonRegistry.PlanetCredits;
 
     public class Dronebit
     {
@@ -68,19 +63,8 @@ public static partial class CosmicHelper
         public uint boxId { get; set; } = 0;
     }
 
-    public static readonly Dictionary<uint, Dronebit> DronebitInfo = new()
-    {
-        [1310] = new() // Oizys
-        {
-            creditId = 49170,
-            boxId = 50414,
-        },
-        [1319] = new() // Auxesia
-        {
-            creditId = 49171,
-            boxId = 50415
-        }
-    };
+    // Oizys + Auxesia only; use TryGetValue before reading (Sinus/Phaenna have no drone currency)
+    public static readonly Dictionary<uint, Dronebit> DronebitInfo = CosmicMoonRegistry.Dronebits;
 
     // General use functions used across the codebase, specifically tied to cosmic related functions
     public static void OpenStellarMission()

@@ -68,12 +68,10 @@ namespace ICE.Scheduler.Tasks
                 PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
             }
 
+            // Same as AgendaCheck — only moons with a cosmodrome have dronebit currency
             int dronebitAmount = 5000;
-            if (PlayerHelper.IsInCosmicZone())
-            {
-                var dronebitId = CosmicHelper.DronebitInfo[territory].creditId;
-                PlayerHelper.GetItemCount(dronebitId, out dronebitAmount);
-            }
+            if (CosmicHelper.DronebitInfo.TryGetValue(territory, out var dronebit))
+                PlayerHelper.GetItemCount(dronebit.creditId, out dronebitAmount);
 
             foreach (var entry in agenda)
             {
@@ -93,9 +91,8 @@ namespace ICE.Scheduler.Tasks
 
                 achieved = goal switch
                 {
-                    PlaylistOptions.SinusMax => relicLevel >= 9,
-                    PlaylistOptions.PhaennaMax => relicLevel >= 14,
-                    PlaylistOptions.OizysMax => relicLevel >= 17,
+                    PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax
+                        => relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal),
                     PlaylistOptions.SelectedRelicLv => relicLevel >= entry.SelectedRelicLevel,
                     PlaylistOptions.CreditAmount => creditAmount >= entry.CreditAmount,
                     PlaylistOptions.PlanetAmount => planetCreditAmount >= entry.PlanetAmount,

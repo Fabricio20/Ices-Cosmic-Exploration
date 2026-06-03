@@ -222,6 +222,8 @@ public static partial class CosmicHelper
         1292, 1293, 1294, 1295, 1296, 1297, 1298, 1299,
         // FSH
         1320, 1321, 1322, 1323, 1324, 1325, 1326, 1327,
+
+        // Auxesia — add mission row IDs (1370+) when leveling targets are chosen
     };
     public class LevelInfo
     {

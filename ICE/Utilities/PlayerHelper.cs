@@ -24,11 +24,16 @@ public class PlayerHelper
         return (CosmicHelper.CrafterJobList.Contains(jobId) || CosmicHelper.GatheringJobList.Contains(jobId));
     }
 
-    public static bool IsInCosmicZone() => IsInSinusArdorum() || IsInPhaenna() || IsInOizys() || IsInAuxesia();
-    public static bool IsInSinusArdorum() => IsInZone(1237);
-    public static bool IsInPhaenna() => IsInZone(1291);
-    public static bool IsInOizys() => IsInZone(1310);
-    public static bool IsInAuxesia() => IsInZone(1319);
+    // All cosmic hubs are listed in CosmicMoonRegistry — keep these wrappers so call sites stay readable
+    public static bool IsInCosmicZone() =>
+        CosmicMoonRegistry.IsKnownCosmicTerritory((uint)Svc.ClientState.TerritoryType);
+
+    public static bool IsOnMoon(CosmicMoonDefinition moon) => IsInZone(moon.TerritoryId);
+
+    public static bool IsInSinusArdorum() => IsOnMoon(CosmicMoonRegistry.Sinus);
+    public static bool IsInPhaenna() => IsOnMoon(CosmicMoonRegistry.Phaenna);
+    public static bool IsInOizys() => IsOnMoon(CosmicMoonRegistry.Oizys);
+    public static bool IsInAuxesia() => IsOnMoon(CosmicMoonRegistry.Auxesia);
     public static bool IsInZone(uint zoneID) => Svc.ClientState.TerritoryType == zoneID;
     public static IPlayerCharacter? LocalPlayer => Svc.Objects.LocalPlayer;
     private static unsafe float AnimationLock => *(float*)((nint)ActionManager.Instance() + 8);

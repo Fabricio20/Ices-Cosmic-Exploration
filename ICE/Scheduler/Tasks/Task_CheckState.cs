@@ -368,13 +368,10 @@ namespace ICE.Scheduler.Tasks
                 PlayerHelper.GetItemCount(planetCreditId, out planetCreditAmount);
             }
 
+            // Dronebits exist on Oizys and Auxesia only — TryGetValue avoids throwing on Sinus/Phaenna
             int dronebitAmount = 5000;
-            // TODO: Add Auxesia Support
-            if (PlayerHelper.IsInOizys())
-            {
-                var dronebitId = CosmicHelper.DronebitInfo[territory].creditId;
-                PlayerHelper.GetItemCount(dronebitId, out dronebitAmount);
-            }
+            if (CosmicHelper.DronebitInfo.TryGetValue(territory, out var dronebit))
+                PlayerHelper.GetItemCount(dronebit.creditId, out dronebitAmount);
 
             IceLogging.Verbose("Checking to see which one we're going to start (if any)", tag);
 
@@ -418,9 +415,8 @@ namespace ICE.Scheduler.Tasks
 
                 achieved = goal switch
                 {
-                    PlaylistOptions.SinusMax => relicLevel >= 9,
-                    PlaylistOptions.PhaennaMax => relicLevel >= 14,
-                    PlaylistOptions.OizysMax => relicLevel >= 17,
+                    PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax
+                        => relicLevel >= CosmicMoonRegistry.GetMaxRelicGoal(goal),
                     PlaylistOptions.SelectedRelicLv => relicLevel >= entry.SelectedRelicLevel,
                     PlaylistOptions.CreditAmount => creditAmount >= entry.CreditAmount,
                     PlaylistOptions.PlanetAmount => planetCreditAmount >= entry.PlanetAmount,

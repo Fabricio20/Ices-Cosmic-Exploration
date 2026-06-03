@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ECommons.GameHelpers;
+using ICE.Utilities.Cosmic_Helper;
+using System.Collections.Generic;
 
 using JobPairs = (string job, uint territoryId, float x, float y);
 namespace ICE.Scheduler.Handlers
@@ -8,7 +10,8 @@ namespace ICE.Scheduler.Handlers
     {
         private static readonly string Announcement = "WKSAnnounce";
 
-        private static readonly Dictionary<string, (JobPairs first, JobPairs second)[]> sinusRedAlert = new()
+        // Red-alert job/flag hints per moon — only Sinus is populated; add Phaenna/Oizys/Auxesia when mapped in-game
+        private static readonly Dictionary<string, (JobPairs first, JobPairs second)[]> SinusRedAlert = new()
         {
             {
                 "meteorite shower",
@@ -50,6 +53,11 @@ namespace ICE.Scheduler.Handlers
             },
         };
 
+        private static readonly Dictionary<uint, Dictionary<string, (JobPairs first, JobPairs second)[]>> RedAlertByTerritory = new()
+        {
+            [CosmicMoonRegistry.Sinus.TerritoryId] = SinusRedAlert,
+        };
+
         internal static LocationEntry CheckForRedAlert()
         {
             if (!PlayerHelper.IsInCosmicZone()) return default;
@@ -60,11 +68,11 @@ namespace ICE.Scheduler.Handlers
                     if (AddonHelper.GetAtkTextNode(Announcement, 48)->IsVisible()) // Red Alert Preparation
                     {
                         var description = AddonHelper.GetNodeText(Announcement, 47).ToLower();
+                        var territoryId = Player.Territory.RowId;
 
-                        Dictionary<string, (JobPairs first, JobPairs second)[]>? redAlert = default;
-                        if (PlayerHelper.IsInSinusArdorum()) redAlert = sinusRedAlert; //Reassign based on Territory
+                        if (!RedAlertByTerritory.TryGetValue(territoryId, out var redAlert))
+                            return default;
 
-                        if (redAlert == default) return default;
                         return redAlert.FirstOrDefault(location => description.Contains(location.Key));
                     }
                     else

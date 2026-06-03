@@ -20,6 +20,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             PlaylistOptions.SinusMax,
             PlaylistOptions.PhaennaMax,
             PlaylistOptions.OizysMax,
+            PlaylistOptions.AuxesiaMax,
             PlaylistOptions.ToolMaxExp,
             PlaylistOptions.SelectedRelicLv,
 
@@ -124,7 +125,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         if (ImGui.Button("Add to Cosmic Agenda"))
                         {
                             var mode = ModeSelect.Standard;
-                            if (SelectedOption is PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.SelectedRelicLv)
+                            if (SelectedOption is PlaylistOptions.SinusMax or PlaylistOptions.PhaennaMax or PlaylistOptions.OizysMax or PlaylistOptions.AuxesiaMax or PlaylistOptions.SelectedRelicLv)
                             {
                                 mode = ModeSelect.RelicMode;
                             }
@@ -571,60 +572,25 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
 
                             ImGui.EndCombo();
                         }
+                        // Same standard-mission check for every hub — driven by CosmicMoonRegistry, not per-moon copy/paste
                         if (currentMode == ModeSelect.Standard && PlayerHelper.IsInCosmicZone())
                         {
-                            var SinusStandard = CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == 1237)
-                                .Where(x => C.MissionConfig.ContainsKey(x.Key))
-                                .Where(x => C.MissionConfig[x.Key].Enabled)
-                                .Where(x => x.Value.Jobs.Contains(agendaInfo.SelectedJob))
-                                .Where(x => x.Value.Rank < 6)
-                                .Count();
-
-                            var PhaennaStandard = CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == 1291)
-                                .Where(x => C.MissionConfig.ContainsKey(x.Key))
-                                .Where(x => C.MissionConfig[x.Key].Enabled)
-                                .Where(x => x.Value.Jobs.Contains(agendaInfo.SelectedJob))
-                                .Where(x => x.Value.Rank < 6)
-                                .Count();
-
-                            var OizysStandard = CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == 1310)
-                                .Where(x => C.MissionConfig.ContainsKey(x.Key))
-                                .Where(x => C.MissionConfig[x.Key].Enabled)
-                                .Where(x => x.Value.Jobs.Contains(agendaInfo.SelectedJob))
-                                .Where(x => x.Value.Rank < 6)
-                                .Count();
-
-                            var AuxesiaStandard = CosmicHelper.SheetMissionDict.Where(x => x.Value.TerritoryId == 1317)
-                                .Where(x => C.MissionConfig.ContainsKey(x.Key))
-                                .Where(x => C.MissionConfig[x.Key].Enabled)
-                                .Where(x => x.Value.Jobs.Contains(agendaInfo.SelectedJob))
-                                .Where(x => x.Value.Rank < 6)
-                                .Count();
-
-                            bool sinusWarning = PlayerHelper.IsInSinusArdorum() && SinusStandard == 0;
-                            bool phaennaWarning = PlayerHelper.IsInPhaenna() && PhaennaStandard == 0;
-                            bool oizysWarning = PlayerHelper.IsInOizys() && OizysStandard == 0;
-                            bool auxesiaWarning = PlayerHelper.IsInAuxesia() && AuxesiaStandard == 0;
-
-                            if (sinusWarning || phaennaWarning || oizysWarning)
+                            var currentMoon = CosmicMoonRegistry.GetMoonForTerritory(Player.Territory.RowId);
+                            if (currentMoon != null)
                             {
-                                string tooltip = "Hey! You seem to not have any standardard missions enabled on the planet/moon you're currently on.\n" +
-                                    "Please make sure to do so for this job if you don't want it to stall out when there is no timed/weather missions.\n" +
-                                    "Currently enabled on the planet you're on:";
+                                var standardCount = CosmicMoonRegistry.CountEnabledStandardMissions(
+                                    currentMoon.TerritoryId, agendaInfo.SelectedJob);
 
+                                if (standardCount == 0)
+                                {
+                                    var tooltip = "Hey! You seem to not have any standardard missions enabled on the planet/moon you're currently on.\n" +
+                                        "Please make sure to do so for this job if you don't want it to stall out when there is no timed/weather missions.\n" +
+                                        $"Currently enabled on {currentMoon.DisplayName}: {standardCount}";
 
-                                if (PlayerHelper.IsInSinusArdorum())
-                                    tooltip += $"\nSinus = {SinusStandard}";
-                                else if (PlayerHelper.IsInPhaenna())
-                                    tooltip += $"\nPhaenna = {PhaennaStandard}";
-                                else if (PlayerHelper.IsInOizys())
-                                    tooltip += $"\nOizys = {OizysStandard}";
-                                else if (PlayerHelper.IsInAuxesia())
-                                    tooltip += $"\nAuxesia = {AuxesiaStandard}";
-
-                                ImGui.SameLine();
-                                ImGui.AlignTextToFramePadding();
-                                ImGui_Ice.IconWithTooltip(Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle, tooltip, false);
+                                    ImGui.SameLine();
+                                    ImGui.AlignTextToFramePadding();
+                                    ImGui_Ice.IconWithTooltip(Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle, tooltip, false);
+                                }
                             }
                         }
 
@@ -647,6 +613,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             if (selectedOption is PlaylistOptions.SinusMax 
                                                or PlaylistOptions.PhaennaMax 
                                                or PlaylistOptions.OizysMax 
+                                               or PlaylistOptions.AuxesiaMax
                                                or PlaylistOptions.SelectedRelicLv 
                                                or PlaylistOptions.ToolMaxExp)
                             {
@@ -656,12 +623,9 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                                 current = MaxToolProgress(job);
                                 goal = selectedOption switch
                                 {
-                                    PlaylistOptions.SinusMax => 9,
-                                    PlaylistOptions.PhaennaMax => 14,
-                                    PlaylistOptions.OizysMax => 17,
                                     PlaylistOptions.ToolMaxExp => MaxToolProgress(job, false),
                                     PlaylistOptions.SelectedRelicLv => agendaInfo.SelectedRelicLevel,
-                                    _ => 20
+                                    _ => CosmicMoonRegistry.GetMaxRelicGoal(selectedOption),
                                 };
                             }
                             else if (selectedOption is PlaylistOptions.ClassLevel)

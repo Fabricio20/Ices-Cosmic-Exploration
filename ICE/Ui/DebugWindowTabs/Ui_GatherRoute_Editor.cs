@@ -547,17 +547,9 @@ namespace ICE.Ui.DebugWindowTabs
             return missions;
         }
 
-        private static string MoonName(uint territoryId)
-        {
-            if (territoryId == 1237)
-                return "Sinus Ardorum";
-            else if (territoryId == 1291)
-                return "Phaenna";
-            else
-            {
-                return "???";
-            }
-        }
+        // territoryId is TerritoryType (1319), not WKSMissionUnit row ID
+        private static string MoonName(uint territoryId) =>
+            CosmicMoonRegistry.GetDisplayName(territoryId);
 
         public static class GatheringRouteExportUI
         {

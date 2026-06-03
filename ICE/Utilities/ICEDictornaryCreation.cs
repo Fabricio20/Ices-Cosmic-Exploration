@@ -19,6 +19,9 @@ public sealed partial class ICE
         var MainMoonSheet = Svc.Data.GetExcelSheet<WKSMissionUnit>();
         string tag = "[Dictionary Creation]";
 
+        // Build PlaceName -> territory map before we assign TerritoryId on each CosmicInfo entry
+        CosmicTerritoryResolver.Initialize();
+
         foreach (var entry in MainMoonSheet)
         {
             Dictionary<ushort, CosmicHelper.CraftingInfo> crafts_Main = new();
@@ -105,25 +108,10 @@ public sealed partial class ICE
             // - - - HEY. BRONZE SCORE IS KEPT HERE - - - //
             uint bronze = missionToDo.Unknown2;
 
-            // TerritoryId that's assigned to each planet. There doesn't seem to be a direct way to grab this...
-            // So just going to hard assign this. TODO: Add last planet when it comes out
-            uint territoryId = 1237;
-            if (keyId < 545)
-            {
-                territoryId = 1237;
-            }
-            else if (keyId < 1040)
-            {
-                territoryId = 1291;
-            }
-            else if (keyId < 1370)
-            {
-                territoryId = 1310;
-            }
-            else if (keyId < 1703)
-            {
-                territoryId = 1319;
-            }
+            // Which moon this mission belongs to (TerritoryType ID, not mission row ID)
+            uint territoryId = CosmicTerritoryResolver.Resolve(entry);
+            if (territoryId == 0)
+                continue; // unresolved — logged once in resolver; do not default to Sinus
 
             // Map Marker Information
             var marker = missionToDo.MapMarker;
@@ -144,6 +132,8 @@ public sealed partial class ICE
             {
                 mapFlag = new(-514, 232);
             }
+            // Mission row IDs 1317–1319 (Oizys) — map markers stacked on the same flag; nudge for route editor keys
+            // Note: these are WKSMissionUnit row IDs, not territory IDs (Auxesia territory is 1319)
             else if (keyId is 1317 or 1318 or 1319)
             {
                 mapFlag = new(mapFlag.X + 1, mapFlag.Y + 1);
@@ -731,6 +721,11 @@ public sealed partial class ICE
             else if (C.ScoreKeeper.TryGetValue(missionId, out var storedScore) && storedScore != 0)
             {
                 entry.Value.ClassScore = storedScore;
+            }
+            else if (entry.Value.BronzeScore != 0)
+            {
+                // Missions 1370+ (Auxesia) may be missing from MissionScores.csv — bronze comes from game sheets
+                entry.Value.ClassScore = entry.Value.BronzeScore;
             }
             else
             {

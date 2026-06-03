@@ -140,11 +140,6 @@ public static unsafe partial class CosmicHelper
         [510] = new() { 172, 487 },
         [511] = new() { 352, 487 }
     };
-    public static Dictionary<uint, Vector3> HubCenter = new()
-    {
-        [1237] = new(2.84f, 1.55f, -0.06f),
-        [1291] = new(339.90f, 52.60f, -412.10f),
-        [1310] = new(-180.02f, 0.50f, 129.25f),
-        [1319] = new(291.00f, 205.78f, 376.02f)
-    };
+    // Hub return / navmesh anchor per moon — see CosmicMoonRegistry for coordinates
+    public static Dictionary<uint, Vector3> HubCenter = CosmicMoonRegistry.HubCenters;
 }

@@ -7,6 +7,7 @@ using ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.ImGuiTools;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using TerraFX.Interop.Windows;
 
@@ -66,27 +67,20 @@ namespace ICE.Ui.MainUi
 
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + leftOffset);
 
-                    var moons = new (string Name, string Asset, ItemFilter planetFilter)[]
-                    {
-                            ("Sinus Ardorum", "ICE.Resources.Sinus_Ardorum.png", ItemFilter.Sinus),
-                            ("Phaenna", "ICE.Resources.Phaenna.png", ItemFilter.Phaenna),
-                            ("Oizys", "ICE.Resources.Oizys.png", ItemFilter.Oizys), 
-                            ("Auxesia", "ICE.Resources.Auxesia.png", ItemFilter.Auxesia)
-                    };
-
-                    for (int i = 0; i < moons.Length; i++)
+                    // Moon list driven by CosmicMoonRegistry — add a moon there instead of copying IDs here
+                    for (int i = 0; i < CosmicMoonRegistry.All.Length; i++)
                     {
                         if (i > 0) ImGui.SameLine(0, iconSpacing);
 
-                        var moon = moons[i];
-                        bool isEnabled = C.ItemFilter.HasFlag(moon.planetFilter);
-                        var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), moon.Asset).GetWrapOrEmpty();
+                        var moon = CosmicMoonRegistry.All[i];
+                        bool isEnabled = C.ItemFilter.HasFlag(moon.PlanetFilter);
+                        var texture = Svc.Texture.GetFromManifestResource(Assembly.GetExecutingAssembly(), moon.IconResource).GetWrapOrEmpty();
 
                         if (ImGui_Ice.DrawStyledImageButton(texture, new Vector2(iconSize, iconSize), isEnabled))
                         {
                             C.ItemFilter = isEnabled
-                                ? C.ItemFilter & ~moon.planetFilter  // was on → turn off 
-                                : C.ItemFilter | moon.planetFilter;  // was off → turn on
+                                ? C.ItemFilter & ~moon.PlanetFilter  // was on → turn off 
+                                : C.ItemFilter | moon.PlanetFilter;  // was off → turn on
                             C.AutoSelectMoon = false;
                             if (Mission_Setup.MissionTable != null)
                                 Mission_Setup.MissionTable.SetFilterDirty();
@@ -96,7 +90,7 @@ namespace ICE.Ui.MainUi
 
                         if (ImGui.IsItemHovered())
                         {
-                            ImGui.SetTooltip(moon.Name);
+                            ImGui.SetTooltip(moon.DisplayName);
                         }
                     }
                 }
@@ -210,15 +204,12 @@ namespace ICE.Ui.MainUi
         {
             if (!autoSelectMoon) return;
 
-            var moonFlags = new (Func<bool> IsInZone, ItemFilter Flag)[]
-            {
-                (PlayerHelper.IsInSinusArdorum, ItemFilter.Sinus),
-                (PlayerHelper.IsInPhaenna,      ItemFilter.Phaenna),
-                (PlayerHelper.IsInOizys,        ItemFilter.Oizys),
-                (PlayerHelper.IsInAuxesia,      ItemFilter.Auxesia)
-            };
+            // When you land on a hub, auto-select only that moon in the mission filter
+            var moonFlags = CosmicMoonRegistry.All
+                .Select(m => ((Func<bool>)(() => PlayerHelper.IsInZone(m.TerritoryId)), m.PlanetFilter))
+                .ToArray();
 
-            var planetFlags = ItemFilter.Sinus | ItemFilter.Phaenna | ItemFilter.Oizys | ItemFilter.Auxesia;
+            var planetFlags = CosmicMoonRegistry.All.Aggregate(ItemFilter.NoItems, (flags, m) => flags | m.PlanetFilter);
 
             foreach (var (IsInZone, Flag) in moonFlags)
             {
