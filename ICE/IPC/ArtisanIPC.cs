@@ -183,7 +183,9 @@ namespace ICE.IPC
                 effectiveSettings = recipeSettings;
             }
 
-            if (isLeveling)
+            // Leveling forces progress-only for speed, except collectable crafts, which can't be turned
+            // in without quality -- keep their quality-capable solver.
+            if (isLeveling && !LevelingMissionPicker.RequiresQuality(missionId))
                 effectiveSettings.ArtisanSolverType = ArtisanCraftType.ProgressOnly;
 
             if (CraftSettings.TryGetValue(recipeId, out var cached) && ArtisanSettingsEqual(cached, effectiveSettings))
