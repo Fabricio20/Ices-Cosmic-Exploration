@@ -214,6 +214,21 @@ namespace ICE.Ui.DebugWindowTabs
                         if (isClosest)
                             ImGui.PopStyleColor();
 
+                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right) && ImGui.IsItemHovered())
+                            ImGui.OpenPopup("FlagOnMapPopup");
+
+                        if (ImGui.BeginPopup("FlagOnMapPopup"))
+                        {
+                            if (ImGui.Selectable("Flag on map"))
+                            {
+                                var missionEntry = CosmicHelper.SheetMissionDict.FirstOrDefault(m => m.Value.TerritoryId == planetTerritory && m.Value.MapPosition == location);
+                                int radius = missionEntry.Value != null ? (int)missionEntry.Value.Radius : 20;
+                                string flagName = missionEntry.Value != null ? missionEntry.Value.Name : $"Gathering {location.X}, {location.Y}";
+                                Utils.SetGatheringRing(planetTerritory, (int)location.X, (int)location.Y, radius, flagName);
+                            }
+                            ImGui.EndPopup();
+                        }
+
                         ImGui.PopID();
                     }
                 }
