@@ -320,6 +320,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     ImGui_Ice.DrawRankButton("Sequence", MissionFilter.Sequence, MissionTable);
                     ImGui_Ice.DrawRankButton("Weather", MissionFilter.Weather, MissionTable);
                     ImGui_Ice.DrawRankButton("Timed", MissionFilter.Timed, MissionTable);
+                    ImGui_Ice.DrawRankButton("Master", MissionFilter.Master, MissionTable);
                     ImGui_Ice.DrawRankButton("A Rank", MissionFilter.ARank, MissionTable);
                     ImGui_Ice.DrawRankButton("B Rank", MissionFilter.BRank, MissionTable);
                     ImGui_Ice.DrawRankButton("C Rank", MissionFilter.CRank, MissionTable);
