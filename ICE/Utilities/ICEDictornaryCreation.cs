@@ -704,11 +704,6 @@ public sealed partial class ICE
             {
                 entry.Value.ClassScore = storedScore;
             }
-            else if (entry.Value.BronzeScore != 0)
-            {
-                // Missions 1370+ (Auxesia) may be missing from MissionScores.csv — bronze comes from game sheets
-                entry.Value.ClassScore = entry.Value.BronzeScore;
-            }
             else
             {
                 entry.Value.ClassScore = 0;
