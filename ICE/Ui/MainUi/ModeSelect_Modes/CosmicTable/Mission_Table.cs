@@ -1,15 +1,11 @@
-﻿using Dalamud.Bindings.ImPlot;
-using Dalamud.Interface;
+﻿using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
-using ICE.OldYamlConfig;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.GatheringHelper;
 using ICE.Utilities.ImGuiTools;
-using JetBrains.Annotations;
 using OtterGui;
 using OtterGui.Table;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using static ICE.ConfigFiles.Config;
 using static ICE.Utilities.Cosmic_Helper.CosmicHelper;
@@ -144,7 +140,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             C.SaveDebounced();
         }
     }
-
     internal class Mission_Table : Table<MissionInfo>, IDisposable
     {
         // TODO: Create default width's for all of these...
@@ -154,14 +149,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         public readonly IdColumn _idColumn = new() { Label = "ID" };
         public readonly JobColumn _jobColumn = new() { Label = "Job" };
         public readonly MissionColumn _missionColumn = new() { Label = "Rank" };
-        public readonly CompletionColumn _completionColumn = new() { Label = "Completed" };
-        public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Class Score" };
+        public readonly CompletionColumn _completionColumn = new() { Label = "Status" };
+        public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Class" };
         public readonly CosmocreditColumn _cosmoColumn = new() { Label = "Cosmo" };
         public readonly LunarCreditColumn _lunarColumn = new() { Label = "Lunar" };
         public readonly DroneCreditColumn _droneColumn = new() { Label = "Dronebits" };
-        public readonly PlanetTokensColumn _planetTokenColumn = new() { Label = "Planet Tokens" };
+        public readonly PlanetTokensColumn _planetTokenColumn = new() { Label = "Mount" };
         public readonly SPMColumn _spmColumn = new() { Label = "SPM" };
-        public readonly TurninColumn _turninColumn = new() { Label = "Turnin Goal" };
+        public readonly TurninColumn _turninColumn = new() { Label = "Goal" };
         public readonly PlanetColumn _planetColumn = new() { Label = "Moons" };
         public readonly ProfileColumn _profileColumn = new() { Label = "Profile" };
         public readonly NotesColumn _notesColumn = new() { Label = "Notes" };
@@ -205,11 +200,15 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
 
         public sealed class EnabledColumn : ItemFilterColumn
         {
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             private readonly Mission_Table _table;
             public EnabledColumn(Mission_Table table)
             {
                 _table = table;
-                Flags = ImGuiTableColumnFlags.NoHide;
+                Flags = ImGuiTableColumnFlags.NoHide | ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.Enabled, ItemFilter.Disabled);
                 SetNames("Enabled", "Disabled");
             }
@@ -313,6 +312,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class IdColumn : VerticalCenterColumnString
         {
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
+            public IdColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
             public override string ToName(MissionInfo item) => item.Id.ToString();
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.Id.CompareTo(rhs.Id);
 
@@ -336,10 +343,13 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public CompletionColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
                 SetFlags(ItemFilter.NotCompleted, ItemFilter.Completed, ItemFilter.Gold);
                 SetNames("Not Completed", "Completed", "Gold");
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.CompletionStatus.CompareTo(rhs.SheetInfo.CompletionStatus);
             public override void DrawColumn(MissionInfo item, int idx)
             {
@@ -384,6 +394,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class ClassScoreColumn : VerticalCenterColumnString
         {
+            public ClassScoreColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override string ToName(MissionInfo mission) => mission.SheetInfo.ClassScore.ToString();
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.ClassScore.CompareTo(rhs.SheetInfo.ClassScore);
             public override void DrawColumn(MissionInfo mission, int _)
@@ -393,6 +411,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class CosmocreditColumn : VerticalCenterColumnString
         {
+            public CosmocreditColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override string ToName(MissionInfo mission) => mission.SheetInfo.CosmoCredit.ToString();
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.CosmoCredit.CompareTo(rhs.SheetInfo.CosmoCredit);
             public override void DrawColumn(MissionInfo mission, int _)
@@ -402,6 +428,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class LunarCreditColumn : VerticalCenterColumnString
         {
+            public LunarCreditColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override string ToName(MissionInfo mission) => mission.SheetInfo.LunarCredit.ToString();
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.LunarCredit.CompareTo(rhs.SheetInfo.LunarCredit);
             public override void DrawColumn(MissionInfo mission, int _)
@@ -411,6 +445,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class DroneCreditColumn : VerticalCenterColumnString
         {
+            public DroneCreditColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override string ToName(MissionInfo mission) => mission.SheetInfo.DronebitReward.ToString();
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.DronebitReward.CompareTo(rhs.SheetInfo.DronebitReward);
             public override void DrawColumn(MissionInfo mission, int _)
@@ -422,10 +464,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public PlanetTokensColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.HasTokens, ItemFilter.NoTokens);
                 SetNames("Has Tokens", "No Tokens");
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.TokenItemAmount.CompareTo(rhs.SheetInfo.TokenItemAmount);
             public override void DrawColumn(MissionInfo mission, int _)
             {
@@ -441,6 +487,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public AllRelicExpColum()
             {
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.HasI, ItemFilter.HasII, ItemFilter.HasIII, ItemFilter.HasIV, ItemFilter.HasV, ItemFilter.HasVI, ItemFilter.HasVII);
                 SetNames("I", "II", "III", "IV", "V", "VI", "VII");
             }
@@ -548,12 +595,16 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
 
             public RelicExpColumn(int tier, ItemFilter flag)
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 _tier = tier;
                 _flag = flag;
                 SetFlags(ItemFilter.HasI, ItemFilter.HasII, ItemFilter.HasIII, ItemFilter.HasIV, ItemFilter.HasV, ItemFilter.HasVI, ItemFilter.HasVII);
                 SetNames("I", "II", "III", "IV", "V", "VI", "VII");
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
 
             public override int Compare(MissionInfo lhs, MissionInfo rhs)
                 => lhs.SheetInfo.RelicXpInfo.GetValueOrDefault(_tier)
@@ -606,10 +657,11 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public MissionColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlags(MissionFilter.RedAlert, MissionFilter.Sequence, MissionFilter.Weather, MissionFilter.Timed, MissionFilter.ARank, MissionFilter.BRank, MissionFilter.CRank, MissionFilter.DRank, MissionFilter.Master);
                 SetNames("Red Alert", "Sequence", "Weather", "Timed", "A Rank", "B Rank", "C Rank", "D Rank", "Master");
             }
+            public override float Width => Math.Max(ImGui.CalcTextSize(Label + "XX").X + ImGui.GetStyle().CellPadding.X * 2, ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2);
 
             private static int GetMissionPriority(CosmicInfo info)
             {
@@ -683,6 +735,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         }
         public sealed class SPMColumn : VerticalCenterColumnString
         {
+            public SPMColumn()
+            {
+                Flags = ImGuiTableColumnFlags.NoResize;
+            }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             private double GetScore(MissionInfo item)
             {
                 var scoreInfo = item.SheetInfo.ScoreInfo();
@@ -780,9 +840,25 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public TurninColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.TurninGold, ItemFilter.TurninSilver, ItemFilter.TurninBronze);
                 SetNames("Gold", "Silver", "Bronze");
+            }
+            public override float Width
+            {
+                get
+                {
+                    int amount = C.MissionFilter.HasFlag(MissionFilter.Master) ? 4 : 3;
+
+                    var iconWidth = ImGui.GetFrameHeight(); // IconButton is square, frameHeight x frameHeight
+                    var spacing = ImGui.GetStyle().ItemSpacing.X;
+                    var cellPadding = ImGui.GetStyle().CellPadding.X * 2;
+
+                    var headerWidth = ImGui.CalcTextSize(Label).X + cellPadding;
+                    var contentWidth = iconWidth * amount + spacing * 3 + cellPadding; // 4 icons (clock+3 trophies) worst case
+
+                    return Math.Max(headerWidth, contentWidth);
+                }
             }
             public override int Compare(MissionInfo lhs, MissionInfo rhs)
             {
@@ -816,6 +892,20 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         var silverEnabled = !timeExpired && highestTurnin >= TurninState.Silver;
                         var bronzeEnabled = !timeExpired && highestTurnin >= TurninState.Bronze;
 
+                        if (item.SheetInfo.Rank == 6)
+                        {
+                            using (ImRaii.PushColor(ImGuiCol.Text, timeExpired ? GoldColor : DisabledColor))
+                            {
+                                if (ImGuiEx.IconButton(FontAwesomeIcon.Clock, "##TimeExpired"))
+                                {
+                                    configInfo.TurninGoal = TurninState.TimeExpired;
+                                    C.SaveDebounced();
+                                }
+                            }
+                            if (ImGui.IsItemHovered())
+                                ImGui.SetTooltip("Only turn in when the mission timer expires (keep gathering for max score).\nUseful for Tool Mastery missions that extend their timer on goal completion.");
+                            ImGui.SameLine();
+                        }
                         using (ImRaii.PushColor(ImGuiCol.Text, goldEnabled ? GoldColor : DisabledColor))
                         {
                             if (ImGuiEx.IconButton(FontAwesomeIcon.Trophy, "##Gold"))
@@ -843,18 +933,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                                 C.SaveDebounced();
                             }
                         }
-                        ImGui.SameLine();
-                        using (ImRaii.PushColor(ImGuiCol.Text, timeExpired ? GoldColor : DisabledColor))
-                        {
-                            if (ImGuiEx.IconButton(FontAwesomeIcon.Clock, "##TimeExpired"))
-                            {
-                                configInfo.TurninGoal = TurninState.TimeExpired;
-                                C.SaveDebounced();
-                            }
-                        }
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Only turn in when the mission timer expires (keep gathering for max score).\nUseful for Tool Mastery missions that extend their timer on goal completion.");
-
                     }
 
                     ImGui.PopID();
@@ -865,11 +943,15 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public PlanetColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 var moons = CosmicMoonRegistry.All;
                 SetFlags(moons.Select(m => m.PlanetFilter).ToArray());
                 SetNames(moons.Select(m => m.DisplayName).ToArray());
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "X").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
 
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.TerritoryId.CompareTo(rhs.SheetInfo.TerritoryId);
             public override void DrawColumn(MissionInfo item, int idx)
@@ -893,11 +975,12 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public JobColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlagsAndNames(JobFilter.CRP, JobFilter.BSM, JobFilter.ARM, JobFilter.GSM,
                                  JobFilter.LTW, JobFilter.WVR, JobFilter.ALC, JobFilter.CUL,
                                  JobFilter.MIN, JobFilter.BTN, JobFilter.FSH);
             }
+            public override float Width => Math.Max(ImGui.CalcTextSize(Label + "XX").X + ImGui.GetStyle().CellPadding.X * 2, ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2);
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.Jobs.First().CompareTo(rhs.SheetInfo.Jobs.First());
 
             public override void DrawColumn(MissionInfo item, int idx)
@@ -947,8 +1030,12 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public ProfileColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label).X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.CalcTextSize("Open Craft Settings").X + ImGui.GetStyle().FramePadding.X * 2 + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override int Compare(MissionInfo lhs, MissionInfo rhs) => lhs.SheetInfo.Jobs.First().CompareTo(rhs.SheetInfo.Jobs.First());
             public override void DrawColumn(MissionInfo item, int idx)
             {
@@ -1074,10 +1161,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         {
             public NotesColumn()
             {
-                Flags = ImGuiTableColumnFlags.None;
+                Flags = ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.BestSPM, ItemFilter.Sequence, ItemFilter.Unlock, ItemFilter.NoNotes);
                 SetNames("Best Score Per Minute", "Sequence", "Needs Unlocked", "No Notes");
             }
+            public override float Width => Math.Max(
+                ImGui.CalcTextSize(Label + "xxx").X + ImGui.GetStyle().CellPadding.X * 2,
+                ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X * 2
+            );
             public override void DrawColumn(MissionInfo item, int idx)
             {
                 var sheetInfo = item.SheetInfo;
