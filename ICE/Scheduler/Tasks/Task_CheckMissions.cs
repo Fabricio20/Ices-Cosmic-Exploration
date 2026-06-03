@@ -123,28 +123,21 @@ namespace ICE.Scheduler.Tasks
 
                 if (C.MissionConfig.TryGetValue(missionId, out var config))
                 {
-                    if (modeSelected == ModeSelect.LevelMode && CosmicHelper.QuickLevelList.Contains(mission.Key))
+                    if (modeSelected == ModeSelect.LevelMode)
                     {
+                        // Populate the library with this moon's leveling-eligible missions (job, at or
+                        // below tier, non-zero exp). Final selection happens in CheckMissions.
                         var job = Mission_Settings.SelectedJob;
-                        var jobLevel = Player.GetLevel((Job)job);
-                        var missionLevel = mission.Value.Level;
-
                         if (!mission.Value.Jobs.Contains(job))
                             continue;
 
-                        // Short end of it all, making sure to see what tier the player should be doing
-                        // Taking the players level and making sure it matches to the tier
-                        // 90+ = 90
-                        // 50-89 = 50
-                        // 10-49 = 10
-                        int playerTier = jobLevel >= 90 ? 90 : jobLevel >= 50 ? 50 : 10;
-
-                        if (missionLevel != playerTier)
+                        var jobLevel = (int)Player.GetLevel((Job)job);
+                        if (mission.Value.Level > LevelingMissionPicker.TierForLevel(jobLevel))
                             continue;
-                        else
-                        {
-                            MissionLibrary[LibraryInfo(mission)].Add(missionId);
-                        }
+                        if (LevelingMissionPicker.ExpForLevel(mission.Value, jobLevel) == 0)
+                            continue;
+
+                        MissionLibrary[LibraryInfo(mission)].Add(missionId);
                     }
                     else if (modeSelected == ModeSelect.RelicMode)
                     {
@@ -475,16 +468,27 @@ namespace ICE.Scheduler.Tasks
                 {
                     if (mode == ModeSelect.LevelMode)
                     {
-                        var levelingMission = missionList.FirstOrDefault();
-                        IceLogging.Verbose($"Leveling Mission: Job: {Mission_Settings.SelectedJob} | Mission: {levelingMission} | Level: {CosmicHelper.SheetMissionDict[levelingMission].Level}", debugOnly: true);
-                        if (basicMissionList.Contains(levelingMission))
+                        var levelingJobLevel = (int)Player.GetLevel((Job)Mission_Settings.SelectedJob);
+                        var levelingCandidates = LevelingMissionPicker.EligibleFor(
+                            Mission_Settings.SelectedJob, levelingJobLevel, basicMissionList);
+
+                        if (levelingCandidates.Count > 0)
                         {
+                            var levelingMission = LevelingMissionPicker.PickBest(levelingCandidates, levelingJobLevel);
+
+                            IceLogging.Verbose($"Leveling Mission (best EXP/min): Job: {Mission_Settings.SelectedJob} | Mission: {levelingMission} | Level: {CosmicHelper.SheetMissionDict[levelingMission].Level}", debugOnly: true);
                             LogInfo(levelingMission);
                             Insert_GrabMissionTask(levelingMission);
                             return true;
                         }
 
-                        IceLogging.Verbose($"We seem to have not found the mission. Going to double check to make sure we have the tab unlocked", tag);
+                        IceLogging.Verbose($"No EXP/min leveling candidate is currently available. Going to double check to make sure we have the tab unlocked", tag);
+
+                        if (basicMissionList.Count == 0)
+                        {
+                            IceLogging.Verbose("No basic missions are currently listed. Continuing/rerolling.", tag);
+                            return true;
+                        }
 
                         var highestRank = basicMissionList.Max(x => CosmicHelper.SheetMissionDict[x].Rank);
                         var level = Player.GetLevel((Job)Mission_Settings.SelectedJob);
