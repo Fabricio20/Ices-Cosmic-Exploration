@@ -860,7 +860,7 @@ namespace ICE.Scheduler.Tasks
                 var mapId = sheetInfo.MapPosition;
                 var gatherInfo = GatheringRouteLoader.GetRoute(missionTerritory, mapId);
 
-                if (gatherInfo.Count == 0)
+                if (gatherInfo == null || gatherInfo.Count == 0)
                 {
                     IceLogging.Error("Hey, so this is actually missing the information for it. So going to just actually add it to the unsupported mission list", tag);
                     UnsupportedMissions.Ids.Add(missionId);

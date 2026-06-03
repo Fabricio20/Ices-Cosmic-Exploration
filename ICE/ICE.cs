@@ -162,6 +162,12 @@ public sealed partial class ICE : IDalamudPlugin
     {
         if (PlayerHelper.IsInCosmicZone())
         {
+            // Queue gather-route visuals while the debug window is open (even when
+            // collapsed), so the overlay survives folding the window. Must run before
+            // DrawPicto, which flushes the queued draw commands this frame.
+            if (debugWindow?.IsOpen == true)
+                Ui.DebugWindowTabs.Ui_GatherRoute_Editor.QueueWorldVisuals();
+
             PictoManager.DrawPicto();
         }
     }
