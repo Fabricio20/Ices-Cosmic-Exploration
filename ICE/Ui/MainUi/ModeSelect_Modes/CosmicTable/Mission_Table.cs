@@ -811,9 +811,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                     if (C.MissionConfig.TryGetValue(item.Id, out var configInfo))
                     {
                         var highestTurnin = configInfo.TurninGoal;
-                        var goldEnabled = highestTurnin >= TurninState.Gold;
-                        var silverEnabled = highestTurnin >= TurninState.Silver;
-                        var bronzeEnabled = highestTurnin >= TurninState.Bronze;
+                        var timeExpired = highestTurnin == TurninState.TimeExpired;
+                        var goldEnabled = !timeExpired && highestTurnin >= TurninState.Gold;
+                        var silverEnabled = !timeExpired && highestTurnin >= TurninState.Silver;
+                        var bronzeEnabled = !timeExpired && highestTurnin >= TurninState.Bronze;
 
                         using (ImRaii.PushColor(ImGuiCol.Text, goldEnabled ? GoldColor : DisabledColor))
                         {
@@ -842,6 +843,17 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                                 C.SaveDebounced();
                             }
                         }
+                        ImGui.SameLine();
+                        using (ImRaii.PushColor(ImGuiCol.Text, timeExpired ? GoldColor : DisabledColor))
+                        {
+                            if (ImGuiEx.IconButton(FontAwesomeIcon.Clock, "##TimeExpired"))
+                            {
+                                configInfo.TurninGoal = TurninState.TimeExpired;
+                                C.SaveDebounced();
+                            }
+                        }
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Only turn in when the mission timer expires (keep gathering for max score).\nUseful for Tool Mastery missions that extend their timer on goal completion.");
 
                     }
 
