@@ -40,7 +40,7 @@ namespace ICE.Scheduler.Tasks
                 }
                 else
                 {
-                    IceLogging.Debug("We're close enough to the repair npc! Continuing on", handle);
+                    IceLogging.Debug("We're close enough to the drone npc! Continuing on", handle);
                     return true;
                 }
             }
@@ -169,15 +169,12 @@ namespace ICE.Scheduler.Tasks
         }
         public static bool CanBuyDroneBoxes()
         {
-            var territoryId = Player.Territory.RowId;
-            // TODO: Code in Dronebit Info table (CosmicHelper)
-
-            uint oizysDronebit = 49170;
-            uint oizysDroneBox = 50414;
+            var territory = Player.Territory.RowId;
+            var dronebitInfo = CosmicHelper.DronebitInfo[territory];
 
             bool shouldBuyItems = false;
 
-            if (PlayerHelper.GetItemCount(oizysDronebit, out var bitCount))
+            if (PlayerHelper.GetItemCount(dronebitInfo.creditId, out var bitCount))
             {
                 var buyAt = C.Cosmodrone_BuyAt;
                 if (buyAt <= bitCount)
@@ -186,7 +183,7 @@ namespace ICE.Scheduler.Tasks
                 }
             }
 
-            if (PlayerHelper.GetItemCount(oizysDroneBox, out var boxCount))
+            if (PlayerHelper.GetItemCount(dronebitInfo.boxId, out var boxCount))
             {
                 var maxBox = C.Cosmodrone_MaxKeep;
                 if (maxBox != 0 && boxCount >= maxBox)
@@ -259,8 +256,7 @@ namespace ICE.Scheduler.Tasks
 
             var mapMarkers = GetAllEventMarkers();
             var marker = mapMarkers.Where(x => x.IconId == 63989).FirstOrDefault();
-
-
+            uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
 
             if (marker != null)
             {
@@ -278,7 +274,7 @@ namespace ICE.Scheduler.Tasks
             }
             else
             {
-                if (PlayerHelper.GetItemCount(50414, out var count) && count > 0)
+                if (PlayerHelper.GetItemCount(itemId, out var count) && count > 0)
                 {
                     IceLogging.Debug("We have a crate to use! Initiating the task to start using it", tag);
                     P.TaskManager.Insert(UseDroneBox, "Use Drone Box");
@@ -351,7 +347,7 @@ namespace ICE.Scheduler.Tasks
                 }
 
                 var actionManager = ActionManager.Instance();
-                uint itemId = 50414;
+                uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
 
                 var status = actionManager->GetActionStatus(ActionType.Item, itemId);
 
@@ -405,7 +401,7 @@ namespace ICE.Scheduler.Tasks
         }
         private static unsafe void UseDrone()
         {
-            uint itemId = 50414;
+            uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
             var inventoryManager = InventoryManager.Instance();
 
             // Array of inventory types to check
