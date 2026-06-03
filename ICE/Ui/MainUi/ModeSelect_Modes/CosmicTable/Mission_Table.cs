@@ -1,15 +1,11 @@
-﻿using Dalamud.Bindings.ImPlot;
-using Dalamud.Interface;
+﻿using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
-using ICE.OldYamlConfig;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.GatheringHelper;
 using ICE.Utilities.ImGuiTools;
-using JetBrains.Annotations;
 using OtterGui;
 using OtterGui.Table;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using static ICE.ConfigFiles.Config;
 using static ICE.Utilities.Cosmic_Helper.CosmicHelper;
@@ -144,7 +140,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             C.SaveDebounced();
         }
     }
-
     internal class Mission_Table : Table<MissionInfo>, IDisposable
     {
         // TODO: Create default width's for all of these...
@@ -155,13 +150,13 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         public readonly JobColumn _jobColumn = new() { Label = "Job" };
         public readonly MissionColumn _missionColumn = new() { Label = "Rank" };
         public readonly CompletionColumn _completionColumn = new() { Label = "Completed" };
-        public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Class Score" };
+        public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Score" };
         public readonly CosmocreditColumn _cosmoColumn = new() { Label = "Cosmo" };
         public readonly LunarCreditColumn _lunarColumn = new() { Label = "Lunar" };
         public readonly DroneCreditColumn _droneColumn = new() { Label = "Dronebits" };
-        public readonly PlanetTokensColumn _planetTokenColumn = new() { Label = "Planet Tokens" };
+        public readonly PlanetTokensColumn _planetTokenColumn = new() { Label = "Mount" };
         public readonly SPMColumn _spmColumn = new() { Label = "SPM" };
-        public readonly TurninColumn _turninColumn = new() { Label = "Turnin Goal" };
+        public readonly TurninColumn _turninColumn = new() { Label = "Turnin" };
         public readonly PlanetColumn _planetColumn = new() { Label = "Moons" };
         public readonly ProfileColumn _profileColumn = new() { Label = "Profile" };
         public readonly NotesColumn _notesColumn = new() { Label = "Notes" };
