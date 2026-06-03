@@ -54,14 +54,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="ECommons" Version="3.2.1.6" />
 		<PackageReference Include="NAudio" Version="2.3.0" />
+		<PackageReference Include="Pictomancy" Version="1.0.9" />
 		<PackageReference Include="TerraFX.Interop.Windows" Version="10.0.26100.6" />
 		<PackageReference Include="YamlDotNet" Version="18.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
-		<ProjectReference Include="..\ffxiv_pictomancy\Pictomancy\Pictomancy.csproj" />
 		<ProjectReference Include="..\OtterGui\OtterGui.csproj" />
 	</ItemGroup>
 
