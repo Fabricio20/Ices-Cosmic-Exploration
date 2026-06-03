@@ -149,23 +149,14 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         public readonly IdColumn _idColumn = new() { Label = "ID" };
         public readonly JobColumn _jobColumn = new() { Label = "Job" };
         public readonly MissionColumn _missionColumn = new() { Label = "Rank" };
-<<<<<<< Updated upstream
-        public readonly CompletionColumn _completionColumn = new() { Label = "Completed" };
-        public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Score" };
-=======
         public readonly CompletionColumn _completionColumn = new() { Label = "Status" };
         public readonly ClassScoreColumn _classScoreColumn = new() { Label = "Class" };
->>>>>>> Stashed changes
         public readonly CosmocreditColumn _cosmoColumn = new() { Label = "Cosmo" };
         public readonly LunarCreditColumn _lunarColumn = new() { Label = "Lunar" };
         public readonly DroneCreditColumn _droneColumn = new() { Label = "Dronebits" };
         public readonly PlanetTokensColumn _planetTokenColumn = new() { Label = "Mount" };
         public readonly SPMColumn _spmColumn = new() { Label = "SPM" };
-<<<<<<< Updated upstream
-        public readonly TurninColumn _turninColumn = new() { Label = "Turnin" };
-=======
         public readonly TurninColumn _turninColumn = new() { Label = "Goal" };
->>>>>>> Stashed changes
         public readonly PlanetColumn _planetColumn = new() { Label = "Moons" };
         public readonly ProfileColumn _profileColumn = new() { Label = "Profile" };
         public readonly NotesColumn _notesColumn = new() { Label = "Notes" };
@@ -896,9 +887,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                     if (C.MissionConfig.TryGetValue(item.Id, out var configInfo))
                     {
                         var highestTurnin = configInfo.TurninGoal;
-                        var goldEnabled = highestTurnin >= TurninState.Gold;
-                        var silverEnabled = highestTurnin >= TurninState.Silver;
-                        var bronzeEnabled = highestTurnin >= TurninState.Bronze;
+                        var timeExpired = highestTurnin == TurninState.TimeExpired;
+                        var goldEnabled = !timeExpired && highestTurnin >= TurninState.Gold;
+                        var silverEnabled = !timeExpired && highestTurnin >= TurninState.Silver;
+                        var bronzeEnabled = !timeExpired && highestTurnin >= TurninState.Bronze;
 
                         if (item.SheetInfo.Rank == 6)
                         {
@@ -941,10 +933,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                                 C.SaveDebounced();
                             }
                         }
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
                     }
 
                     ImGui.PopID();
