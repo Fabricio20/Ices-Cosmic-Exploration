@@ -3,6 +3,7 @@ using Dalamud.Interface.Utility.Raii;
 using ICE.OldYamlConfig;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.ImGuiTools;
+using JetBrains.Annotations;
 using OtterGui;
 using OtterGui.Table;
 using System.Collections.Generic;
@@ -161,6 +162,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
         public readonly PlanetColumn _planetColumn = new() { Label = "Moons" };
         public readonly ProfileColumn _profileColumn = new() { Label = "Profile" };
         public readonly NotesColumn _notesColumn = new() { Label = "Notes" };
+        public readonly AllRelicExpColum _allExpColumn = new() { Label = "Exp" };
 
         public Mission_Table(List<MissionInfo> itemList) : base("Item_Table_V2", itemList)
         {
@@ -170,8 +172,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 _enabledColumn, _completionColumn, _idColumn, _planetColumn,
                 _jobColumn, _missionColumn, _nameColumn, _classScoreColumn, 
                 _cosmoColumn, _lunarColumn, _droneColumn, _planetTokenColumn, 
-                _spmColumn, _turninColumn];
+                _spmColumn,  _turninColumn, _allExpColumn];
 
+
+            /*
             var tierFlags = new (int tier, ItemFilter flag)[]
             {
                 (1, ItemFilter.HasI),   (2, ItemFilter.HasII),  (3, ItemFilter.HasIII),
@@ -184,6 +188,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 string tierName = tier switch { 1 => "I", 2 => "II", 3 => "III", 4 => "IV", 5 => "V", 6 => "VI", 7 => "VII", _ => "?" };
                 headers.Add(new RelicExpColumn(tier, flag) { Label = $"Exp {tierName}" });
             }
+            */
+
             headers.Add(_profileColumn, _notesColumn);
             this.Headers = [.. headers];
 
@@ -404,6 +410,101 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             public override bool FilterFunc(MissionInfo mission)
             {
                 return mission.SheetInfo.TokenItemAmount > 0 ? FilterValue.HasFlag(ItemFilter.HasTokens) : FilterValue.HasFlag(ItemFilter.NoTokens);
+            }
+        }
+        public sealed class AllRelicExpColum : ItemFilterColumn
+        {
+            public AllRelicExpColum()
+            {
+                SetFlags(ItemFilter.HasI, ItemFilter.HasII, ItemFilter.HasIII, ItemFilter.HasIV, ItemFilter.HasV, ItemFilter.HasVI, ItemFilter.HasVII);
+                SetNames("I", "II", "III", "IV", "V", "VI", "VII");
+            }
+
+            public override int Compare(MissionInfo lhs, MissionInfo rhs)
+            {
+                var lhsPairs = lhs.SheetInfo.RelicXpInfo.OrderBy(x => x.Key).ThenBy(x => x.Value).FirstOrDefault();
+                var rhsPairs = rhs.SheetInfo.RelicXpInfo.OrderBy(x => x.Key).ThenBy(x => x.Value).FirstOrDefault();
+
+                var keyCompare = lhsPairs.Key.CompareTo(rhsPairs.Key);
+                if (keyCompare != 0) return keyCompare;
+
+                return lhsPairs.Value.CompareTo(rhsPairs.Value);
+            }
+
+            private static string RomanNumeral(int tier) => tier switch
+            {
+                1 => "I",
+                2 => "II",
+                3 => "III",
+                4 => "IV",
+                5 => "V",
+                6 => "VI",
+                7 => "VII",
+                _ => "?"
+            };
+
+            public override void DrawColumn(MissionInfo item, int idx)
+            {
+                var exps = item.SheetInfo.RelicXpInfo
+                    .Where(x => x.Value != 0)
+                    .OrderBy(x => x.Key)
+                    .ToList();
+
+                if (exps.Count == 0)
+                {
+                    ImGuiUtil.Center("-");
+                    return;
+                }
+
+                float spacing = ImGui.GetStyle().ItemSpacing.X;
+                float padding = ImGui.GetStyle().FramePadding.X;
+
+                // Calculate total width of all pills + spacing between them
+                float totalWidth = exps.Sum(x => ImGui.CalcTextSize($"{RomanNumeral(x.Key)}:{x.Value}").X + padding * 2);
+                totalWidth += spacing * (exps.Count - 1);
+
+                float columnWidth = ImGui.GetColumnWidth();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (columnWidth - totalWidth) / 2);
+
+                for (int i = 0; i < exps.Count; i++)
+                {
+                    var (tier, value) = (exps[i].Key, exps[i].Value);
+
+                    Vector4 pillColor = tier switch
+                    {
+                        1 => new Vector4(0.9f, 0.8f, 0.1f, 0.8f), // I   - Yellow
+                        2 => new Vector4(0.9f, 0.5f, 0.1f, 0.8f), // II  - Orange
+                        3 => new Vector4(0.8f, 0.2f, 0.2f, 0.8f), // III - Red
+                        4 => new Vector4(0.6f, 0.2f, 0.8f, 0.8f), // IV  - Purple
+                        5 => new Vector4(0.2f, 0.4f, 0.9f, 0.8f), // V   - Blue
+                        6 => new Vector4(0.4f, 0.8f, 1.0f, 0.8f), // VI  - Light Blue
+                        7 => new Vector4(0.2f, 0.8f, 0.3f, 0.8f), // VII - Green
+                        _ => new Vector4(0.5f, 0.5f, 0.5f, 0.8f),
+                    };
+
+                    string roman = tier switch
+                    {
+                        1 => "I",
+                        2 => "II",
+                        3 => "III",
+                        4 => "IV",
+                        5 => "V",
+                        6 => "VI",
+                        7 => "VII",
+                        _ => "?"
+                    };
+
+
+                    using (ImRaii.PushColor(ImGuiCol.Button, pillColor)
+                                 .Push(ImGuiCol.ButtonHovered, pillColor with { W = 1.0f })
+                                 .Push(ImGuiCol.ButtonActive, pillColor))
+                    {
+                        ImGui.SmallButton($"{roman}:{value}##exp{tier}_{idx}");
+                    }
+
+                    if (i < exps.Count - 1)
+                        ImGui.SameLine();
+                }
             }
         }
         public sealed class RelicExpColumn : ItemFilterColumn
