@@ -47,11 +47,12 @@ namespace ICE.Ui.DebugWindowTabs
 
                 List<uint> levels = new() { 10, 50, 90 };
 
-                // One row block per hub — Auxesia included when QuickLevelList has entries for territory 1319
+                // One row block per hub — the tier-level missions on that territory.
                 foreach (var moon in CosmicMoonRegistry.All)
                 {
-                    var levelingMissions = CosmicHelper.QuickLevelList
-                        .Where(x => CosmicHelper.SheetMissionDict[x].TerritoryId == moon.TerritoryId)
+                    var levelingMissions = CosmicHelper.SheetMissionDict
+                        .Where(x => x.Value.TerritoryId == moon.TerritoryId && levels.Contains(x.Value.Level))
+                        .Select(x => x.Key)
                         .ToList();
 
                     DrawPlanetLevelRows(moon.IconResource, levelingMissions, levels);

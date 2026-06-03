@@ -264,7 +264,7 @@ public static class CosmicMoonRegistry
     public static bool HasUnlockContent(CosmicMoonDefinition moon) =>
         CosmicMissionLists.HasUnlockContent(moon.TerritoryId);
 
-    /// <summary>True when QuickLevelList has at least one mission on this hub.</summary>
+    /// <summary>True when this hub has any crafter/gatherer mission to level on.</summary>
     public static bool HasLevelingContent(CosmicMoonDefinition moon) =>
         CosmicMissionLists.HasLevelingContent(moon.TerritoryId);
 }

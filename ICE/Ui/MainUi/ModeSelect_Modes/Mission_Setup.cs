@@ -161,7 +161,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                     && CosmicMoonRegistry.TryGetMoon(Player.Territory.RowId, out var currentMoon)
                     && !CosmicMoonRegistry.HasLevelingContent(currentMoon);
 
-                // Leveling on a hub requires QuickLevelList entries; gathering still needs route YAML per territory
+                // Leveling needs the hub to have crafter/gatherer missions; gathering still needs route YAML per territory
                 using (ImRaii.Disabled(SchedulerMain.State != IceState.Idle || !usingSupportedJob || unsupportedMoon))
                 {
                     if (ImGui.Button("Start", new Vector2(150 * scale, 0)))
@@ -194,7 +194,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                         ImGui.Text($"Hey! {unsupportedHub.DisplayName} is not supported for leveling yet.");
                         var missing = new List<string>();
                         if (!CosmicMoonRegistry.HasLevelingContent(unsupportedHub))
-                            missing.Add("QuickLevelList missions");
+                            missing.Add("leveling missions");
                         if (!CosmicMoonContent.HasGatheringRoutes(unsupportedHub.TerritoryId))
                             missing.Add("gathering routes");
                         if (missing.Count > 0)

@@ -93,8 +93,8 @@ public static partial class CosmicHelper
             896, 938);
 
         // Auxesia (1370+): add AddMissions(...) blocks when you have SPM numbers from in-zone runs.
-        // Unlock / quick-level IDs are built automatically — see CosmicMissionLists.cs.
-        // If the sheet misses rows, use ManualUnlockAdditions / ManualQuickLevelAdditions there.
+        // Unlock IDs are built automatically — see CosmicMissionLists.cs.
+        // If the sheet misses rows, use ManualUnlockAdditions there.
 
         foreach (var mission in notesDictonary)
         {
@@ -109,9 +109,6 @@ public static partial class CosmicHelper
             dict[id] = new CustomNotes { SPM = spm, NoteInfo = note };
         }
     }
-
-    /// <summary>Filled by CosmicMissionLists.BuildFromSheet() during startup — not a hand-edited list anymore.</summary>
-    public static IEnumerable<uint> QuickLevelList => CosmicMissionLists.QuickLevelList;
 
     /// <summary>Filled by CosmicMissionLists.BuildFromSheet() during startup — not a hand-edited list anymore.</summary>
     public static IEnumerable<uint> Unlock_MissionList => CosmicMissionLists.UnlockMissionList;

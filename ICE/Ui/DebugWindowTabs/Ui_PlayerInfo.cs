@@ -90,10 +90,8 @@ namespace ICE.Ui.DebugWindowTabs
             {
                 foreach (var mission in C.MissionConfig)
                 {
-                    if (!CosmicHelper.QuickLevelList.Contains(mission.Key))
-                        mission.Value.Enabled = false;
-                    else
-                        mission.Value.Enabled = true;
+                    mission.Value.Enabled = CosmicHelper.SheetMissionDict.TryGetValue(mission.Key, out var info)
+                        && info.Level is 10 or 50 or 90;
                 }
                 C.SaveDebounced();
             }
@@ -179,7 +177,7 @@ namespace ICE.Ui.DebugWindowTabs
             {
                 var id = mission.Key;
 
-                if (!CosmicHelper.QuickLevelList.Contains(id))
+                if (!CosmicHelper.SheetMissionDict.TryGetValue(id, out var levelCheck) || levelCheck.Level is not (10 or 50 or 90))
                     continue;
 
                 if (CosmicHelper.SheetMissionDict.TryGetValue(id, out var missionInfo))
