@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Numerics; // Add this for Vector2 and Vector3
+using System.Numerics;
+using ICE.Utilities.Cosmic_Helper;
 
 namespace ICE.Utilities;
 
+/// <summary>
+/// Hub NPC positions keyed by territory ID (1237 / 1291 / 1310 / 1319).
+/// CosmicMoonContent.ValidateRegistry() warns if a moon in the registry is missing an entry here.
+/// </summary>
 internal static class NpcData // Renamed the class to avoid conflict
 {
     public enum NpcType

@@ -40,7 +40,7 @@ namespace ICE.Scheduler.Tasks
 
         private static bool CanPurchaseFromShop(List<uint> shoppingOrder, Dictionary<uint, Shop_Cosmocredits.ItemInfo> shopData)
         {
-            PlayerHelper.GetItemCount(45690, out var currencyAmount);
+            PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var currencyAmount);
             currencyAmount -= C.CosmoKeepAmount;
 
             foreach (var itemId in shoppingOrder)
@@ -524,7 +524,7 @@ namespace ICE.Scheduler.Tasks
         {
             // Get current currency amount (you'll need to determine how to get this without the shop window)
 
-            PlayerHelper.GetItemCount(45690, out var currencyAmount);
+            PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var currencyAmount);
             currencyAmount -= C.CosmoKeepAmount;
 
             // Try BuyAmount first

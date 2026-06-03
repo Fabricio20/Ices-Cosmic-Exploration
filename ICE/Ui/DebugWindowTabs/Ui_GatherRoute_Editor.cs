@@ -18,10 +18,8 @@ namespace ICE.Ui.DebugWindowTabs
         private static uint selectedZone = 0;
         private static uint selectedNode = 0;
 
-        private static bool showOnlyVisibleNodes = false;
         private static float maxDistance = 75.0f;
 
-        private static bool showSelectedNode = false;
         private static bool showRouteBetween = true;
 
         private static bool _isGeneratingFan = false;

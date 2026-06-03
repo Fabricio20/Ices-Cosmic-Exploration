@@ -8,16 +8,8 @@ namespace ICE.Ui.DebugWindowTabs
     {
         public static unsafe void Draw()
         {
-            uint currentScore = 0;
-            uint silverScore = 0;
-            uint goldScore = 0;
-
             if (GenericHelpers.TryGetAddonMaster<WKSMissionInfomation>("WKSMissionInfomation", out var x) && x.IsAddonReady)
             {
-                // currentScore = x.CurrentScore;
-                // silverScore = x.SilverScore;
-                // goldScore = x.GoldScore;
-
                 var isAddonReady = AddonHelper.IsAddonActive("WKSMissionInfomation");
                 ImGui.Text($"Addon Ready: {isAddonReady}");
                 if (isAddonReady)

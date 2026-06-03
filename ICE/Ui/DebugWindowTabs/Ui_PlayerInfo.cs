@@ -202,8 +202,6 @@ namespace ICE.Ui.DebugWindowTabs
             return bestMission;
         }
 
-        private static uint selectedId = 0;
-
         private static void DroidCheck()
         {
             if (ImGui.CollapsingHeader("Object info"))

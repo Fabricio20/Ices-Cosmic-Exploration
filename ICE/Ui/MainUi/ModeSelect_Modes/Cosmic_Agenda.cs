@@ -631,8 +631,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             }
                             else if (selectedOption is PlaylistOptions.CreditAmount)
                             {
-                                uint cosmoCreditId = 45690;
-                                if (PlayerHelper.GetItemCount(cosmoCreditId, out var creditAmount))
+                                if (PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var creditAmount))
                                 {
                                     current = creditAmount;
                                     goal = agendaInfo.CreditAmount;
@@ -640,7 +639,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             }
                             else if (selectedOption is PlaylistOptions.PlanetAmount)
                             {
-                                if (CosmicHelper.PlanetCreditInfo.TryGetValue(territory, out var gambaCredits) && PlayerHelper.GetItemCount(gambaCredits, out var gambaAmount))
+                                if (CosmicMoonRegistry.TryGetPlanetCreditItemId(territory, out var gambaCredits) && PlayerHelper.GetItemCount(gambaCredits, out var gambaAmount))
                                 {
                                     current = gambaAmount;
                                     goal = agendaInfo.PlanetAmount;
@@ -648,7 +647,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             }
                             else if (selectedOption is PlaylistOptions.DronebitAmount)
                             {
-                                if (CosmicHelper.DronebitInfo.TryGetValue(territory, out var dronebitAmount))
+                                if (CosmicMoonRegistry.TryGetDronebit(territory, out var dronebitAmount))
                                 {
                                     PlayerHelper.GetItemCount(dronebitAmount.creditId, out var count);
 

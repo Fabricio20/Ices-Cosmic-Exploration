@@ -54,17 +54,11 @@ public static partial class CosmicHelper
         { 7, "VII" },
     };
 
-    // Planet token item IDs per hub — defined in CosmicMoonRegistry (one place to update per moon)
-    public static readonly Dictionary<uint, uint> PlanetCreditInfo = CosmicMoonRegistry.PlanetCredits;
-
     public class Dronebit
     {
         public uint creditId { get; set; } = 0;
         public uint boxId { get; set; } = 0;
     }
-
-    // Oizys + Auxesia only; use TryGetValue before reading (Sinus/Phaenna have no drone currency)
-    public static readonly Dictionary<uint, Dronebit> DronebitInfo = CosmicMoonRegistry.Dronebits;
 
     // General use functions used across the codebase, specifically tied to cosmic related functions
     public static void OpenStellarMission()
@@ -151,8 +145,10 @@ public static partial class CosmicHelper
 
             var score = wks->State.Scores[arrayIndex];
             var currentStage = researchModule->CurrentStages[arrayIndex];
-            var nextStage = currentStage == CosmicHelper.MaxRelicLevel
-                ? CosmicHelper.MaxRelicLevel
+            // Cap next stage by current hub (Auxesia allows higher than old flat 17).
+            var maxStage = CosmicMoonRegistry.GetMaxRelicStage((uint)Svc.ClientState.TerritoryType);
+            var nextStage = currentStage >= maxStage
+                ? maxStage
                 : (byte)(currentStage + 1);
 
             ClassInfo entry = new()

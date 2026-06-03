@@ -361,7 +361,7 @@ namespace ICE.Scheduler.Tasks
 
             var agenda = C.Cosmic_Agenda;
             var relicProgress = CosmicHelper.Cosmic_ClassInfo();
-            PlayerHelper.GetItemCount(45690, out var creditAmount);
+            PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var creditAmount);
             int planetCreditAmount = 10000;
             var territory = Player.Territory.RowId;
             if (PlayerHelper.IsInCosmicZone())
@@ -372,7 +372,7 @@ namespace ICE.Scheduler.Tasks
 
             // Dronebits exist on Oizys and Auxesia only — TryGetValue avoids throwing on Sinus/Phaenna
             int dronebitAmount = 5000;
-            if (CosmicHelper.DronebitInfo.TryGetValue(territory, out var dronebit))
+            if (CosmicMoonRegistry.TryGetDronebit(territory, out var dronebit))
                 PlayerHelper.GetItemCount(dronebit.creditId, out dronebitAmount);
 
             IceLogging.Verbose("Checking to see which one we're going to start (if any)", tag);
@@ -514,20 +514,19 @@ namespace ICE.Scheduler.Tasks
                 return true;
             }
 
-            if (CosmicHelper.DronebitInfo.TryGetValue(territoryId, out var dronebitAmount))
+            if (CosmicMoonRegistry.TryGetDronebit(territoryId, out var dronebitAmount))
             {
                 BuyDrones = C.Cosmodrone_Buy && Task_ArtifactSearch.CanBuyDroneBoxes();
                 IceLogging.Verbose($"Buying drones? {BuyDrones}", tag);
             }
-            if (CosmicHelper.PlanetCreditInfo.TryGetValue(territoryId, out var gambaCredits) && PlayerHelper.GetItemCount(gambaCredits, out var gambaAmount))
+            if (CosmicMoonRegistry.TryGetPlanetCreditItemId(territoryId, out var gambaCredits) && PlayerHelper.GetItemCount(gambaCredits, out var gambaAmount))
             {
                 IceLogging.Verbose($"{C.GambaAtAmount} >= {gambaAmount} && Gamba between runs {C.GambaBetweenRuns}");
                 GambaWheel = C.GambaAtAmount <= gambaAmount && C.GambaBetweenRuns;
             }
             if (C.BuyItems)
             {
-                uint cosmoCreditId = 45690;
-                if (PlayerHelper.GetItemCount(cosmoCreditId, out var creditAmount))
+                if (PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var creditAmount))
                 {
                     BuyItems = creditAmount >= C.CosmoBuyAtAmount && Task_BuyCosmoItems.CanPurchaseAnyItem();
                 }

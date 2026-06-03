@@ -170,7 +170,8 @@ namespace ICE.Scheduler.Tasks
         public static bool CanBuyDroneBoxes()
         {
             var territory = Player.Territory.RowId;
-            var dronebitInfo = CosmicHelper.DronebitInfo[territory];
+            if (!CosmicMoonRegistry.TryGetDronebit(territory, out var dronebitInfo))
+                return false;
 
             bool shouldBuyItems = false;
 
@@ -256,7 +257,10 @@ namespace ICE.Scheduler.Tasks
 
             var mapMarkers = GetAllEventMarkers();
             var marker = mapMarkers.Where(x => x.IconId == 63989).FirstOrDefault();
-            uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
+            if (!CosmicMoonRegistry.TryGetDronebit(Player.Territory.RowId, out var dronebit))
+                return false;
+
+            uint itemId = dronebit.boxId;
 
             if (marker != null)
             {
@@ -347,7 +351,10 @@ namespace ICE.Scheduler.Tasks
                 }
 
                 var actionManager = ActionManager.Instance();
-                uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
+                if (!CosmicMoonRegistry.TryGetDronebit(Player.Territory.RowId, out var dronebit))
+                    return false;
+
+                uint itemId = dronebit.boxId;
 
                 var status = actionManager->GetActionStatus(ActionType.Item, itemId);
 
@@ -401,7 +408,10 @@ namespace ICE.Scheduler.Tasks
         }
         private static unsafe void UseDrone()
         {
-            uint itemId = CosmicHelper.DronebitInfo[Player.Territory.RowId].boxId;
+            if (!CosmicMoonRegistry.TryGetDronebit(Player.Territory.RowId, out var dronebit))
+                return;
+
+            uint itemId = dronebit.boxId;
             var inventoryManager = InventoryManager.Instance();
 
             // Array of inventory types to check

@@ -48,9 +48,13 @@ public sealed class CosmicMoonDefinition
 /// UI filters, agenda warnings, overlay planets, debug tables, credits, hub centers, and cosmodrome checks
 /// should go through here instead of hardcoding 1237 / 1291 / 1310 / 1319.
 /// <para>
-/// Mission territory still comes from <see cref="CosmicTerritoryResolver"/> (game PlaceName), not from row-id bands.
-/// Hand-authored data (NPC positions, gathering YAML, fish holes, MissionScores) stays per moon but uses
-/// <see cref="CosmicMoonDefinition.TerritoryId"/> and <see cref="CosmicMoonDefinition.DisplayName"/> from this type.
+/// Mission territory still comes from <see cref="CosmicTerritoryResolver"/> (game PlaceName), not row-id bands.
+/// Hand-authored data (NPCs, gather YAML, fish holes, MissionScores) uses each moon's TerritoryId from here.
+/// </para>
+/// <para>
+/// Infra pass: call TryGetPlanetCreditItemId / TryGetHubCenter / TryGetDronebit instead of the legacy
+/// dict aliases on CosmicHelper and Mission_Info. Relic stage caps live on each moon (Auxesia = 20).
+/// Startup logs from CosmicMoonContent.ValidateRegistry() show what's still missing per hub.
 /// </para>
 /// </remarks>
 public static class CosmicMoonRegistry
@@ -143,7 +147,7 @@ public static class CosmicMoonRegistry
     public static readonly IReadOnlyList<PlaylistOptions> MaxRelicPlaylistOptions =
         All.Select(m => m.MaxRelicPlaylistOption).ToArray();
 
-    // These dictionaries back the existing CosmicHelper.PlanetCreditInfo / HubCenter / DronebitInfo fields
+    // Legacy dictionary aliases — prefer TryGetPlanetCreditItemId / TryGetHubCenter / TryGetDronebit.
     public static readonly Dictionary<uint, uint> PlanetCredits =
         All.ToDictionary(m => m.TerritoryId, m => m.PlanetCreditItemId);
 
@@ -216,6 +220,22 @@ public static class CosmicMoonRegistry
     public static bool TryGetPlanetCreditItemId(uint territoryId, out uint itemId) =>
         PlanetCredits.TryGetValue(territoryId, out itemId);
 
+    // Hub lookups — use these at call sites instead of indexing dicts directly.
+    public static bool TryGetHubCenter(uint territoryId, out Vector3 hubCenter) =>
+        HubCenters.TryGetValue(territoryId, out hubCenter);
+
+    public static bool TryGetDronebit(uint territoryId, out CosmicHelper.Dronebit dronebit) =>
+        Dronebits.TryGetValue(territoryId, out dronebit);
+
+    // Per-moon relic caps (Sinus 9 → Auxesia 20). UI/agenda should use these, not a flat 17.
+    public static int HighestMaxRelicStage => All.Max(m => m.MaxRelicStage);
+
+    /// <summary>Relic XP bar cap for max-stage sub-progress (was hardcoded 17.6).</summary>
+    public static float MaxRelicExpBarCap => HighestMaxRelicStage + 0.6f;
+
+    public static int GetMaxRelicStage(uint territoryId) =>
+        TryGetMoon(territoryId, out var moon) ? moon.MaxRelicStage : HighestMaxRelicStage;
+
     /// <summary>Target relic stage for max-relic playlist goals.</summary>
     public static int GetMaxRelicGoal(PlaylistOptions option) =>
         TryGetMoonForMaxRelicOption(option, out var moon) ? moon.MaxRelicStage : 0;
@@ -241,28 +261,11 @@ public static class CosmicMoonRegistry
         return 0;
     }
 
-    /// <summary>True when Unlock_MissionList has at least one mission on this hub.</summary>
-    public static bool HasUnlockContent(CosmicMoonDefinition moon)
-    {
-        foreach (var missionId in CosmicHelper.Unlock_MissionList)
-        {
-            if (CosmicHelper.SheetMissionDict.TryGetValue(missionId, out var info) && info.TerritoryId == moon.TerritoryId)
-                return true;
-        }
-
-        return false;
-    }
+    public static bool HasUnlockContent(CosmicMoonDefinition moon) =>
+        CosmicMissionLists.HasUnlockContent(moon.TerritoryId);
 
     /// <summary>True when QuickLevelList has at least one mission on this hub.</summary>
-    public static bool HasLevelingContent(CosmicMoonDefinition moon)
-    {
-        foreach (var missionId in CosmicHelper.QuickLevelList)
-        {
-            if (CosmicHelper.SheetMissionDict.TryGetValue(missionId, out var info) && info.TerritoryId == moon.TerritoryId)
-                return true;
-        }
-
-        return false;
-    }
+    public static bool HasLevelingContent(CosmicMoonDefinition moon) =>
+        CosmicMissionLists.HasLevelingContent(moon.TerritoryId);
 }
 

@@ -51,7 +51,7 @@ namespace ICE.Scheduler.Tasks
                 return true;
             }
 
-            if (CosmicHelper.HubCenter.TryGetValue(Player.Territory.RowId, out var HubCenter))
+            if (CosmicMoonRegistry.TryGetHubCenter(Player.Territory.RowId, out var HubCenter))
             {
                 Vector3 PlayerPos = Player.Position;
 

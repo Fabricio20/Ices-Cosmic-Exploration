@@ -218,7 +218,7 @@ namespace ICE.Ui.MainUi
 
             // When you land on a hub, auto-select only that moon in the mission filter
             var moonFlags = CosmicMoonRegistry.All
-                .Select(m => ((Func<bool>)(() => PlayerHelper.IsInZone(m.TerritoryId)), m.PlanetFilter))
+                .Select(m => ((Func<bool>)(() => Player.Territory.RowId == m.TerritoryId), m.PlanetFilter))
                 .ToArray();
 
             var planetFlags = CosmicMoonRegistry.All.Aggregate(ItemFilter.NoItems, (flags, m) => flags | m.PlanetFilter);

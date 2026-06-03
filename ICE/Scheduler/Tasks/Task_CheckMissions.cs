@@ -51,7 +51,6 @@ namespace ICE.Scheduler.Tasks
                     new(() => CheckTabs(), "Checking tabs for valid missions")
                 );
         }
-        private static int GrabMission_Counter = 0;
         private static void ReOpenMissionUi(string tag)
         {
             if (GenericHelpers.TryGetAddonMaster<WKSHud>("WKSHud", out var moonHud) && moonHud.IsAddonReady)

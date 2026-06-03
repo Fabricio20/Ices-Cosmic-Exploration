@@ -16,8 +16,11 @@ public static unsafe partial class CosmicHelper
     public static readonly int MaximumLevel = Player.MaxLevel;
     public static readonly float ImageSize = 24;
 
-    public static readonly int MaxRelicLevel = 17;
-    public static readonly float MaxRelicExpStatus = 17.6f;
+    // Relic XP bar cap (highest stage across all moons + overcap headroom).
+    public static readonly float MaxRelicExpStatus = CosmicMoonRegistry.MaxRelicExpBarCap;
+
+    // Shared cosmo credits (45690) — not the per-planet gamba tokens. Use this instead of hardcoding the ID.
+    public const uint CosmoCreditItemId = 45690;
 
 
 
@@ -140,6 +143,4 @@ public static unsafe partial class CosmicHelper
         [510] = new() { 172, 487 },
         [511] = new() { 352, 487 }
     };
-    // Hub return / navmesh anchor per moon — see CosmicMoonRegistry for coordinates
-    public static Dictionary<uint, Vector3> HubCenter = CosmicMoonRegistry.HubCenters;
 }

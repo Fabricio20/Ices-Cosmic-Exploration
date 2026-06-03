@@ -743,8 +743,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                                     if (exp.Value.Current == exp.Value.Max)
                                         completedSubStages++;
                                 }
-                                // Use integer math, then convert once at the end
-                                currentExpStage = CosmicHelper.MaxRelicLevel + (completedSubStages / 10f);
+                                // Bar max is highest relic stage across all moons (20 on Auxesia; was hardcoded 17).
+                                currentExpStage = CosmicMoonRegistry.HighestMaxRelicStage + (completedSubStages / 10f);
                             }
 
                             ImGui.TableNextColumn();
@@ -763,7 +763,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
                             float offsetY = (rowHeight - barHeight) / 2f;
                             ImGui.SetCursorScreenPos(new Vector2(cellMin.X, cellMin.Y + offsetY));
 
-                            ImGui_Ice.Draw_XPBar(currentExpStage, CosmicHelper.MaxRelicLevel, CosmicHelper.MaxRelicExpStatus, size: new Vector2(200, barHeight));
+                            ImGui_Ice.Draw_XPBar(currentExpStage, CosmicMoonRegistry.HighestMaxRelicStage, CosmicHelper.MaxRelicExpStatus, size: new Vector2(200, barHeight));
                             if (ImGui.IsItemHovered())
                             {
                                 ImGui.BeginTooltip();
@@ -788,6 +788,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             }
             else
             {
+                var maxRelicStage = CosmicMoonRegistry.GetMaxRelicStage((uint)Svc.ClientState.TerritoryType);
                 var jobStatus = expInfo[SelectedJob];
                 if (ImGui.BeginTable("Specific Class Details", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
                 {
@@ -822,12 +823,12 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
 
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
-                    ImGui_Ice.Table_FullCenterText($" {jobStatus.Stage_Current} / {CosmicHelper.MaxRelicLevel}");
+                    ImGui_Ice.Table_FullCenterText($" {jobStatus.Stage_Current} / {maxRelicStage}");
 
                     ImGui.TableNextColumn();
                     var LvCellMin = ImGui.GetCursorScreenPos();
                     ImGui.SetCursorScreenPos(new Vector2(LvCellMin.X, LvCellMin.Y + offsetY));
-                    ImGui_Ice.Draw_XPBar(jobStatus.Stage_Current, CosmicHelper.MaxRelicLevel, CosmicHelper.MaxRelicLevel);
+                    ImGui_Ice.Draw_XPBar(jobStatus.Stage_Current, maxRelicStage, maxRelicStage);
 
                     foreach (var exp in jobStatus.CurrentExp)
                     {

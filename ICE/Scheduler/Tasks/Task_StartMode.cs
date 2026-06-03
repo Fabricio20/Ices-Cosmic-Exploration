@@ -59,7 +59,7 @@ namespace ICE.Scheduler.Tasks
         {
             var agenda = C.Cosmic_Agenda;
             var relicProgress = CosmicHelper.Cosmic_ClassInfo();
-            PlayerHelper.GetItemCount(45690, out var creditAmount);
+            PlayerHelper.GetItemCount(CosmicHelper.CosmoCreditItemId, out var creditAmount);
             int planetCreditAmount = 10000;
             var territory = Player.Territory.RowId;
             if (PlayerHelper.IsInCosmicZone())
@@ -72,7 +72,7 @@ namespace ICE.Scheduler.Tasks
 
             // Same as AgendaCheck — only moons with a cosmodrome have dronebit currency
             int dronebitAmount = 5000;
-            if (CosmicHelper.DronebitInfo.TryGetValue(territory, out var dronebit))
+            if (CosmicMoonRegistry.TryGetDronebit(territory, out var dronebit))
                 PlayerHelper.GetItemCount(dronebit.creditId, out dronebitAmount);
 
             foreach (var entry in agenda)

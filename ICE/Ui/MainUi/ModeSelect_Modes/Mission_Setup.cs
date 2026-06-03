@@ -45,7 +45,6 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes
             { "Red Mage", 35 },
             { "Pictomancer", 42 }
         };
-        private static string newListName = "";
 
         public static Mission_Table? MissionTable;
         private static List<CosmicHelper.MissionInfo> TableItems = [];

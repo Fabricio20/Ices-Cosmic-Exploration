@@ -10,7 +10,8 @@ namespace ICE.Scheduler.Handlers
     {
         private static readonly string Announcement = "WKSAnnounce";
 
-        // Red-alert job/flag hints per moon — only Sinus is populated; add Phaenna/Oizys/Auxesia when mapped in-game
+        // Red-alert chat hints when WKS announce fires. Sinus only for now.
+        // Phaenna / Oizys / Auxesia: copy the SinusRedAlert pattern and register in RedAlertByTerritory.
         private static readonly Dictionary<string, (JobPairs first, JobPairs second)[]> SinusRedAlert = new()
         {
             {
@@ -18,8 +19,8 @@ namespace ICE.Scheduler.Handlers
                 new(JobPairs first, JobPairs second)[]
                 {
                     (
-                        ("ARM/GSM", 1237, 22.6f, 14.9f),
-                        ("BSM/LTW/MIN", 1237, 16.3f, 24.4f)
+                        ("ARM/GSM", CosmicMoonRegistry.Sinus.TerritoryId, 22.6f, 14.9f),
+                        ("BSM/LTW/MIN", CosmicMoonRegistry.Sinus.TerritoryId, 16.3f, 24.4f)
                     )
                 }
             },
@@ -28,12 +29,12 @@ namespace ICE.Scheduler.Handlers
                 new(JobPairs first, JobPairs second)[]
                 {
                     (
-                        ("CUL/BTN/FSH", 1237, 24.5f, 16.8f),
-                        ("CRP/LTW/WVR", 1237, 29.0f, 35.4f)
+                        ("CUL/BTN/FSH", CosmicMoonRegistry.Sinus.TerritoryId, 24.5f, 16.8f),
+                        ("CRP/LTW/WVR", CosmicMoonRegistry.Sinus.TerritoryId, 29.0f, 35.4f)
                     ),
                     (
-                        ("BSM/ALC", 1237, 32.2f, 22.2f),
-                        ("CRP/WVR/BTN", 1237, 36.0f, 23.4f)
+                        ("BSM/ALC", CosmicMoonRegistry.Sinus.TerritoryId, 32.2f, 22.2f),
+                        ("CRP/WVR/BTN", CosmicMoonRegistry.Sinus.TerritoryId, 36.0f, 23.4f)
                     )
                 }
             },
@@ -42,12 +43,12 @@ namespace ICE.Scheduler.Handlers
                 new(JobPairs first, JobPairs second)[]
                 {
                     (
-                        ("ARM/GSM/ALC", 1237, 24.9f, 33.1f),
-                        ("MIN/FSH", 1237, 19.2f, 15.0f)
+                        ("ARM/GSM/ALC", CosmicMoonRegistry.Sinus.TerritoryId, 24.9f, 33.1f),
+                        ("MIN/FSH", CosmicMoonRegistry.Sinus.TerritoryId, 19.2f, 15.0f)
                     ),
                     (
-                        ("CRP/GSM/WVR", 1237, 19.8f, 36.8f),
-                        ("CUL/MIN/FSH", 1237, 12.3f, 20.0f)
+                        ("CRP/GSM/WVR", CosmicMoonRegistry.Sinus.TerritoryId, 19.8f, 36.8f),
+                        ("CUL/MIN/FSH", CosmicMoonRegistry.Sinus.TerritoryId, 12.3f, 20.0f)
                     )
                 }
             },

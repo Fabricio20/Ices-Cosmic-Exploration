@@ -34,8 +34,6 @@ namespace ICE.Scheduler.Tasks
         private static Random random = new();
         private static int randomCounter = 0;
 
-        private static FishingDebug _fishingDebug = null;
-
         public enum TravelTypes
         {
             Direct,
@@ -387,7 +385,8 @@ namespace ICE.Scheduler.Tasks
         }
         public static Dictionary<uint, List<AethernetSystem>> PlanetAethernet = new()
         {
-            [1237] = new()
+            // Keys must match CosmicMoonRegistry.*.TerritoryId — validated in CosmicMoonContent.ValidateRegistry()
+            [CosmicMoonRegistry.Sinus.TerritoryId] = new()
             {
                 new()
                 {
@@ -425,7 +424,7 @@ namespace ICE.Scheduler.Tasks
                     Location = new(629.80f, -73.95f, -572.78f),
                 }
             },
-            [1291] = new()
+            [CosmicMoonRegistry.Phaenna.TerritoryId] = new()
             {
                 new()
                 {
@@ -463,7 +462,7 @@ namespace ICE.Scheduler.Tasks
                     LandZone = new(-591.95f, 28.50f, 722.10f),
                 }
             },
-            [1310] = new()
+            [CosmicMoonRegistry.Oizys.TerritoryId] = new()
             {
                 new()
                 {
@@ -502,7 +501,7 @@ namespace ICE.Scheduler.Tasks
                     RequiredLogLv = 14,
                 }
             },
-            [1319] = new()
+            [CosmicMoonRegistry.Auxesia.TerritoryId] = new()
             {
                 new()
                 {
@@ -846,7 +845,7 @@ namespace ICE.Scheduler.Tasks
         {
             string tag = "[Navmesh: Calculate Hub Path]";
 
-            if (CosmicHelper.HubCenter.TryGetValue(Player.Territory.RowId, out var HubCenter))
+            if (CosmicMoonRegistry.TryGetHubCenter(Player.Territory.RowId, out var HubCenter))
             {
                 var method = TravelMethods[TravelTypes.Hub_Return];
 
@@ -922,7 +921,7 @@ namespace ICE.Scheduler.Tasks
             var territoryId = Player.Territory.RowId;
             var planetProgress = PlanetProgress[territoryId];
 
-            if (CosmicHelper.HubCenter.TryGetValue(Player.Territory.RowId, out var HubCenter))
+            if (CosmicMoonRegistry.TryGetHubCenter(Player.Territory.RowId, out var HubCenter))
             {
                 var method = TravelMethods[TravelTypes.Hub_Aethernet];
 
@@ -1058,7 +1057,7 @@ namespace ICE.Scheduler.Tasks
                 return true;
             }
 
-            if (CosmicHelper.HubCenter.TryGetValue(Player.Territory.RowId, out var HubCenter))
+            if (CosmicMoonRegistry.TryGetHubCenter(Player.Territory.RowId, out var HubCenter))
             {
                 if (NpcData.MoonNpcs.TryGetValue(territoryId, out var planetInfo))
                 {
@@ -1224,7 +1223,6 @@ namespace ICE.Scheduler.Tasks
             return true;
         }
 
-        private static int counter = 0;
         private static unsafe bool? TravelToAethershard(PathInfo shardInfo)
         {
             string tag = "[Navmesh: Aethershard movement]";

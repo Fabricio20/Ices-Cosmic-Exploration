@@ -401,8 +401,6 @@ namespace ICE.Scheduler.Tasks
 
         public static bool? PathandCheckNode()
         {
-            string tag = "Gather: Navmesh Movement";
-
             var zoneId = Player.Territory;
             var missionEntry = CosmicHelper.CurrentMissionInfo;
             var missionFlag = missionEntry.MapPosition;
@@ -887,7 +885,6 @@ namespace ICE.Scheduler.Tasks
         }
         private static bool WillOvercap(int recoveryGP)
         {
-            string tag = "Cordial: Overcap Check";
             bool WillOvercap = (PlayerHelper.GetGp() + recoveryGP) > PlayerHelper.MaxGp();
             if (WillOvercap)
             {

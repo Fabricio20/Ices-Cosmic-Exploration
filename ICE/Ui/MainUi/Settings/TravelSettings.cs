@@ -273,7 +273,7 @@ namespace ICE.Ui.MainUi.Settings.Settings_Table
             {
                 ImGui.Text($"Planet: {Player.Territory.Value.PlaceName.Value.Name}");
                 ImGui.Checkbox("Show fishing spot raycast", ref _fishingDebug.ShowFishRay);
-                if (PlayerHelper.LocalPlayer is { } player && _fishingDebug.ShowFishRay)
+                if (Player.Object is { } player && _fishingDebug.ShowFishRay)
                 {
                     _fishingDebug.Draw();
                 }
