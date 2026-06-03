@@ -607,8 +607,8 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             public MissionColumn()
             {
                 Flags = ImGuiTableColumnFlags.None;
-                SetFlags(MissionFilter.RedAlert, MissionFilter.Sequence, MissionFilter.Weather, MissionFilter.Timed, MissionFilter.ARank, MissionFilter.BRank, MissionFilter.CRank, MissionFilter.DRank);
-                SetNames("Red Alert", "Sequence", "Weather", "Timed", "A Rank", "B Rank", "C Rank", "D Rank");
+                SetFlags(MissionFilter.RedAlert, MissionFilter.Sequence, MissionFilter.Weather, MissionFilter.Timed, MissionFilter.ARank, MissionFilter.BRank, MissionFilter.CRank, MissionFilter.DRank, MissionFilter.Master);
+                SetNames("Red Alert", "Sequence", "Weather", "Timed", "A Rank", "B Rank", "C Rank", "D Rank", "Master");
             }
 
             private static int GetMissionPriority(CosmicInfo info)
@@ -652,6 +652,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                     {
                         string rank = item.SheetInfo.Rank switch
                         {
+                            6 => "M",
                             5 or 4 => "A",
                             3 => "B",
                             2 => "C",
@@ -675,6 +676,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 if (FilterValue.HasFlag(MissionFilter.BRank) && sheetInfo.BRank && !special) return true;
                 if (FilterValue.HasFlag(MissionFilter.CRank) && sheetInfo.CRank && !special) return true;
                 if (FilterValue.HasFlag(MissionFilter.DRank) && sheetInfo.Drank && !special) return true;
+                if (FilterValue.HasFlag(MissionFilter.Master) && sheetInfo.Master) return true;
 
                 return false;
             }
@@ -940,7 +942,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             {
                 var sheetInfo = item.SheetInfo;
                 bool craftProfile = sheetInfo.Attributes.HasFlag(MissionAttributes.Craft);
-                bool gatherProfile = sheetInfo.Attributes.HasFlag(MissionAttributes.Gather);
+                bool gatherProfile = sheetInfo.Attributes.HasFlag(MissionAttributes.Gather) || sheetInfo.IsGreaterReach;
                 bool collectable = sheetInfo.Attributes.HasFlag(MissionAttributes.Collectables) || sheetInfo.Attributes.HasFlag(MissionAttributes.ReducedItems);
                 bool fishProfile = sheetInfo.Attributes.HasFlag(MissionAttributes.Fish);
 
