@@ -942,11 +942,6 @@ public sealed partial class ICE
 
     private static void MigrateConfigSettings()
     {
-        if (!C.OldConfigMigrateV1)
-        {
-            // That means we're still on the old config version. Time to migrate if it exist
-            ConfigMigration.MigrateFromOldYaml(C);
-        }
         if (!C.MigratedOldArtisan)
         {
             Artisan_MigrateNew();

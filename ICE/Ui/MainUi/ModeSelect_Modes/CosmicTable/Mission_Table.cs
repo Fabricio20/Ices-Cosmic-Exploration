@@ -2,6 +2,7 @@
 using Dalamud.Interface.Utility.Raii;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.GatheringHelper;
+using ICE.Utilities.GatheringHelper.RouteLoader;
 using ICE.Utilities.ImGuiTools;
 using OtterGui;
 using OtterGui.Table;
@@ -264,8 +265,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                 {
                     if (mission.SheetInfo.IsGatherMission)
                     {
-                        var gatherInfo = GatheringRouteLoader.GetRoute(mission.SheetInfo.TerritoryId, mission.SheetInfo.MapPosition);
-                        if (gatherInfo == null || gatherInfo.Count is 0)
+                        var route = mission.SheetInfo.Gather_MapKey;
+
+                        var gatherInfo = GatheringRouteLoader.GetRoute(route);
+                        if (gatherInfo == null || gatherInfo.Nodes.Count is 0)
                             UnsupportedMissions.Ids.Add(mission.Id);
 
                         if (UnsupportedMissions.Ids.Contains(mission.Id))
@@ -303,8 +306,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
 
                 if (mission.SheetInfo.Attributes.HasFlag(MissionAttributes.Gather) && mission.SheetInfo.TerritoryId == CosmicMoonRegistry.Auxesia.TerritoryId)
                 {
-                    var gatherInfo = GatheringRouteLoader.GetRoute(mission.SheetInfo.TerritoryId, mission.SheetInfo.MapPosition);
-                    if (gatherInfo == null || gatherInfo.Count is 0)
+                    var routeId = mission.SheetInfo.Gather_MapKey;
+
+                    var gatherInfo = GatheringRouteLoader.GetRoute(routeId);
+                    if (gatherInfo == null || gatherInfo.Nodes.Count is 0)
                         UnsupportedMissions.Ids.Add(mission.Id);
                 }
                 else if (mission.SheetInfo.Attributes.HasFlag(MissionAttributes.Fish))
