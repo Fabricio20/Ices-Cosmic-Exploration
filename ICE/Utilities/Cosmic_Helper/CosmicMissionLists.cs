@@ -3,19 +3,11 @@ using System.Linq;
 
 namespace ICE.Utilities.Cosmic_Helper;
 
-/// <summary>
-/// Unlock + quick-level mission IDs, rebuilt from the sheet on startup.
-/// Quick-level targets stay hand-curated (<see cref="ManualQuickLevelAdditions"/>); the sheet heuristic
-/// cannot infer them because level tier (LevelGroup 1–3) and letter rank (4 = A) share the same field.
-/// </summary>
 public static class CosmicMissionLists
 {
     public static HashSet<uint> UnlockMissionIds { get; private set; } = [];
     public static HashSet<uint> QuickLevelMissionIds { get; private set; } = [];
-
     public static HashSet<uint> ManualUnlockAdditions { get; } = [];
-
-    /// <summary>Per-job leveling targets at the 10 / 50 / 90 tiers — verified in-game, not sheet-derived.</summary>
     public static HashSet<uint> ManualQuickLevelAdditions { get; } =
     [
         // Sinus
