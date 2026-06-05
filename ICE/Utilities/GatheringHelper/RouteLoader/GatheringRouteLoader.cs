@@ -191,6 +191,24 @@ public static class GatheringRouteLoader
     public static List<GatheringRoute> GetIncompleteRoutes() =>
         LoadedRoutes.Values.Where(r => r.Nodes is null or { Count: 0 }).ToList();
 
+    public static List<uint> AddedNodes()
+    {
+        List<uint> nodeIds = new();
+
+        foreach (var route in LoadedRoutes)
+        {
+            if (route.Value.Nodes != null)
+            {
+                foreach (var node in route.Value.Nodes)
+                {
+                    if (!nodeIds.Contains(node.NodeId))
+                        nodeIds.Add(node.NodeId);
+                }
+            }
+        }
+        return nodeIds;
+    }
+
     // ── Internals ────────────────────────────────────────────────────────────
 
     private static string GetBasePath() =>

@@ -199,13 +199,10 @@ namespace ICE.Scheduler.Handlers.PictoStuff
         public static void DrawGatherNodes(List<NodeInfo>? routeItem, uint selectedNode, List<Vector3>? waypointPath = null)
         {
             // Light colors with transparency (lighter alpha ~50%)
-            // Light blue (~#87CEFB)
-            var blue = new Vector4(0.18f, 0.46f, 0.92f, 1f);  // ~#2E75EB
-            var purple = new Vector4(0.58f, 0.18f, 0.92f, 1f);  // ~#942EEB
 
             // If you need uint (e.g. for ImGui.PushStyleColor with a uint overload):
-            uint lightBlue = ImGui.ColorConvertFloat4ToU32(blue);
-            uint lightPurple = ImGui.ColorConvertFloat4ToU32(purple);
+            uint selectedFan = ImGui.ColorConvertFloat4ToU32(C.Picto_SelectedFan);
+            uint gatherFan = ImGui.ColorConvertFloat4ToU32(C.Picto_GatherFan);
             uint orange = 0xFFFFA500;      // Orange with 100% alpha (fully opaque)
 
             // Solid colors for distance checks (full alpha)
@@ -258,7 +255,7 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                         var prevNode = routeItem[i - 1];
                         AddDrawCommand(pictoDraw =>
                         {
-                            pictoDraw.AddLineFilled(prevNode.LandZone, currentNode.LandZone, 0.01f, lightBlue);
+                            pictoDraw.AddLineFilled(prevNode.LandZone, currentNode.LandZone, 0.01f, selectedFan);
                         });
                     }
 
@@ -268,14 +265,14 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                         var firstNode = routeItem[0];
                         AddDrawCommand(pictoDraw =>
                         {
-                            pictoDraw.AddLineFilled(currentNode.LandZone, firstNode.LandZone, 0.01f, lightBlue);
+                            pictoDraw.AddLineFilled(currentNode.LandZone, firstNode.LandZone, 0.01f, selectedFan);
                         });
                     }
 
                     // Draw circle around the node position
                     AddDrawCommand(pictoDraw =>
                     {
-                        pictoDraw.AddCircleFilled(currentNode.Position, 0.75f, lightPurple, lightBlue);
+                        pictoDraw.AddCircleFilled(currentNode.Position, 0.75f, gatherFan, selectedFan);
                     });
 
                     // Draw text label for node
@@ -288,10 +285,10 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                     // Draw dot at landzone position
                     AddDrawCommand(pictoDraw =>
                     {
-                        pictoDraw.AddDot(currentNode.LandZone, 5, orange);
+                        pictoDraw.AddCircle(currentNode.LandZone, 3, orange);
                     });
 
-                    var fanColor = lightPurple;
+                    var fanColor = gatherFan;
                     if (selectedNode == currentNode.NodeId)
                         fanColor = orange;
 
@@ -345,6 +342,49 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                     });
                 }
             }
+        }
+        public static void DrawGatheringFan(NodeInfo location, Vector3 selectedNode)
+        {
+            var fanColor_Gather = location.Position == selectedNode ? C.Picto_SelectedFan : C.Picto_GatherFan;
+            var fanColor = Utils.ToUintABGR(fanColor_Gather);
+
+            Vector3 gatherFanPos = new(location.Position.X, location.Position.Y + location.FanHeight, location.Position.Z);
+
+            float pictoStart = (location.RadiusStart + 180f) % 360f;
+            float pictoEnd = (location.RadiusEnd + 180f) % 360f;
+            float minDist = location.MinDistance;
+            float maxDist = location.MaxDistance;
+
+            float start = pictoStart;
+            float end = pictoEnd;
+            Vector3 fanPos = gatherFanPos;
+
+            if (start > end)
+            {
+                AddDrawCommand(pictoDraw =>
+                {
+                    pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
+                        DegreesToRadians(start), DegreesToRadians(360),
+                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                    pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
+                        DegreesToRadians(0), DegreesToRadians(end),
+                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                });
+            }
+            else
+            {
+                AddDrawCommand(pictoDraw =>
+                {
+                    pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
+                        DegreesToRadians(start), DegreesToRadians(end),
+                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                });
+            }
+
+            AddDrawCommand(pictoDraw =>
+            {
+                pictoDraw.AddSphere(location.Position, 0.5f, Utils.ToUintABGR(C.Picto_GatherFan), p: new PctDxParams { OccludedAlpha = 0 });
+            });
         }
 
         /// <summary>
