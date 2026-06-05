@@ -199,8 +199,13 @@ namespace ICE.Scheduler.Handlers.PictoStuff
         public static void DrawGatherNodes(List<NodeInfo>? routeItem, uint selectedNode, List<Vector3>? waypointPath = null)
         {
             // Light colors with transparency (lighter alpha ~50%)
-            uint lightBlue = 0x80ADD8E6;   // Light blue with 50% alpha
-            uint lightPurple = 0x80DDA0DD; // Light purple (plum) with 50% alpha
+            // Light blue (~#87CEFB)
+            var blue = new Vector4(0.18f, 0.46f, 0.92f, 1f);  // ~#2E75EB
+            var purple = new Vector4(0.58f, 0.18f, 0.92f, 1f);  // ~#942EEB
+
+            // If you need uint (e.g. for ImGui.PushStyleColor with a uint overload):
+            uint lightBlue = ImGui.ColorConvertFloat4ToU32(blue);
+            uint lightPurple = ImGui.ColorConvertFloat4ToU32(purple);
             uint orange = 0xFFFFA500;      // Orange with 100% alpha (fully opaque)
 
             // Solid colors for distance checks (full alpha)
