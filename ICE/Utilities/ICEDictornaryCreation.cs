@@ -801,8 +801,8 @@ public sealed partial class ICE
             else
             {
                 var iconId = marker.Icon;
-                var x = marker.X;
-                var y = marker.Y;
+                var x = marker.X - 1024;
+                var y = marker.Y - 1024;
                 var radius = marker.Radius;
                 List<uint> jobs = new();
 
