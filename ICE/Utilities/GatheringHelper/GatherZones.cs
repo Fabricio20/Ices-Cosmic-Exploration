@@ -14,6 +14,7 @@ public static unsafe partial class GatheringUtil
         public uint Y { get; set; } = 0;
         public uint Radius { get; set; } = 0;
         public uint IconId { get; set; } = 0;
+        public List<uint> JobId { get; set; } = new();
     }
 
     public static Dictionary<uint, MapInfo> GatherSpots = new();
