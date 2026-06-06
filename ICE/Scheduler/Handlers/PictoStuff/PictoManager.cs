@@ -365,10 +365,10 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                 {
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(start), DegreesToRadians(360),
-                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(0), DegreesToRadians(end),
-                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
                 });
             }
             else
@@ -377,7 +377,7 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                 {
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(start), DegreesToRadians(end),
-                        fanColor, p: new PctDxParams { OccludedAlpha = 0 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
                 });
             }
 
