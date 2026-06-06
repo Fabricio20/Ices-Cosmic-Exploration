@@ -268,6 +268,13 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         "Sooner rather than later. I should have it done Sunday though if not tonight\n" +
                         "Sorry for the conconvience");
                 }
+                if (mission.SheetInfo.TerritoryId == CosmicMoonRegistry.Auxesia.TerritoryId && mission.SheetInfo.Jobs.Contains(18))
+                {
+                    ImGuiEx.IconWithTooltip(FontAwesomeIcon.ExclamationTriangle,
+                        "Fishing isn't *-directly-* supportet yet. But all the fishing holes have locations now\n" +
+                        "So you should be able to import from the autohook wiki -> Set the first preset's name under \"Fishing Settings\"\n" +
+                        "And be able to farm to your hearts content. About as close as I can do rn till I finish up the rest of btn/min");
+                }
 
                 if (ImGui.Button(mission.SheetInfo.Name))
                 {
