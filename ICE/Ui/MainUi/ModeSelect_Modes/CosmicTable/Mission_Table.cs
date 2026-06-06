@@ -2,6 +2,7 @@
 using Dalamud.Interface.Utility.Raii;
 using ICE.Utilities.Cosmic_Helper;
 using ICE.Utilities.GatheringHelper;
+using ICE.Utilities.GatheringHelper.RouteLoader;
 using ICE.Utilities.ImGuiTools;
 using OtterGui;
 using OtterGui.Table;
@@ -262,26 +263,10 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
             {
                 if (UnsupportedMissions.Ids.Contains(mission.Id))
                 {
-                    ImGuiEx.IconWithTooltip(FontAwesomeIcon.ExclamationTriangle, "Hey, this mission is currently not supported.\n" +
-                        "I'm working on it currently, please give me time\n" +
-                        "Or in the case of fishing, give our big fisher strife time to make presets");
-                    ImGui.SameLine();
-                }
-
-                if (mission.SheetInfo.Attributes.HasFlag(MissionAttributes.Gather))
-                {
-                    var gatherInfo = GatheringRouteLoader.GetRoute(mission.SheetInfo.TerritoryId, mission.SheetInfo.MapPosition);
-                    if (gatherInfo == null || gatherInfo.Count is 0)
-                        UnsupportedMissions.Ids.Add(mission.Id);
-                }
-                else if (mission.SheetInfo.Attributes.HasFlag(MissionAttributes.Fish))
-                {
-                    if (!GatheringUtil.MoonFishingLocations.TryGetValue(mission.SheetInfo.TerritoryId, out var zoneFishing)
-                        || !zoneFishing.TryGetValue(mission.SheetInfo.MapPosition, out var fishingHole)
-                        || fishingHole.Count == 0)
-                    {
-                        UnsupportedMissions.Ids.Add(mission.Id);
-                    }
+                    ImGuiEx.IconWithTooltip(FontAwesomeIcon.ExclamationTriangle, "This mission is not currently supported\n" +
+                        "Had to rework the gathering dictionary and I'm tired of people not reading, so I had to push the update\n" +
+                        "Sooner rather than later. I should have it done Sunday though if not tonight\n" +
+                        "Sorry for the conconvience");
                 }
 
                 if (ImGui.Button(mission.SheetInfo.Name))
