@@ -365,10 +365,10 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                 {
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(start), DegreesToRadians(360),
-                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 0.8f, OcclusionTolerance = 0.5f });
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(0), DegreesToRadians(end),
-                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 0.8f, OcclusionTolerance = 0.5f });
                 });
             }
             else
@@ -377,13 +377,23 @@ namespace ICE.Scheduler.Handlers.PictoStuff
                 {
                     pictoDraw.AddFanFilled(fanPos, minDist, maxDist,
                         DegreesToRadians(start), DegreesToRadians(end),
-                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 1 });
+                        fanColor, fanColor, p: new PctDxParams { OccludedAlpha = 0.8f, OcclusionTolerance = 0.5f });
                 });
             }
 
             AddDrawCommand(pictoDraw =>
             {
                 pictoDraw.AddSphere(location.Position, 0.5f, Utils.ToUintABGR(C.Picto_GatherFan), p: new PctDxParams { OccludedAlpha = 0 });
+            });
+
+            DrawVfxCircle($"{location.Position}_{location.NodeId}", location.Position, Utils.FromUintABGR(C.PictoColor_Circle));
+        }
+        public static void DrawVfxCircle(string id, Vector3 origin, Vector4 color)
+        {
+            AddDrawCommand(pictoDraw =>
+            {
+                PctService.VfxRenderer.AddCircle(id, origin, 3, color);
+                // PictoService.VfxRenderer.AddOmen(id, $"{id}_Omen", origin, color:color);
             });
         }
 
