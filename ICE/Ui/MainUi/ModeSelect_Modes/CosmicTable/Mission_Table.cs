@@ -898,7 +898,7 @@ namespace ICE.Ui.MainUi.ModeSelect_Modes.CosmicTable
                         var silverEnabled = !timeExpired && highestTurnin >= TurninState.Silver;
                         var bronzeEnabled = !timeExpired && highestTurnin >= TurninState.Bronze;
 
-                        if (item.SheetInfo.Rank == 6 && !item.SheetInfo.IsProvisional)
+                        if (item.SheetInfo.IsMaster)
                         {
                             using (ImRaii.PushColor(ImGuiCol.Text, timeExpired ? GoldColor : DisabledColor))
                             {
